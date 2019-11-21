@@ -17,7 +17,7 @@
         "__id__": 2
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [],
     "_prefab": null,
     "_opacity": 255,
@@ -1130,8 +1130,10 @@
       "__id__": 21
     },
     "_enabled": true,
-    "rowsNum": 10,
-    "columnsNum": 10,
+    "columnsNum": 5,
+    "rowsNum": 6,
+    "prefabSize": 171,
+    "blocksContainerMargin": 60,
     "blocksPrefabs": [
       {
         "__uuid__": "e66949c7-1034-4a4b-8628-c4d18bbf4618"
