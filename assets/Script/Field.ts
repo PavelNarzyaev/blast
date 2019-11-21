@@ -21,14 +21,19 @@ export default class Field extends cc.Component {
 	rowsNum: number = 5;
 
 	@property
+	minGroupSize: number = 2;
+
+	@property
 	prefabSize: number = 171;
 
 	@property([cc.Prefab])
 	blocksPrefabs: cc.Prefab[] = [];
 
 	blocksContainer: cc.Node;
+	grid: object = {};
 
 	start() {
+		Block.prefabs = this.blocksPrefabs;
 		this.alignNode();
 		this.initBlocksContainer();
 	}
@@ -51,10 +56,47 @@ export default class Field extends cc.Component {
 	fillBlocksContainer() {
 		for (let row: number = 0; row < this.rowsNum; row++) {
 			for (let column: number = 0; column < this.columnsNum; column++) {
-				let randomBlock: cc.Node = this.createRandomBlock();
+				let randomBlock: Block = this.createRandomBlock();
+				randomBlock.row = row;
+				randomBlock.column = column;
+				this.registerBlockInGrid(randomBlock);
 				randomBlock.x = this.prefabSize * column;
 				randomBlock.y = this.prefabSize * row;
 				this.blocksContainer.addChild(randomBlock);
+				randomBlock.getNode().on(cc.Node.EventType.TOUCH_START, function () { this.onBlockTouch(randomBlock); }, this);
+			}
+		}
+	}
+
+	onBlockTouch(block: Block) {
+		const group: Block[] = this.checkBlockNeighbors(block, { [this.getGridKey(block.column, block.row)]: true }, [block]);
+		if (group.length >= this.minGroupSize) {
+			group.forEach(this.removeBlock.bind(this));
+		}
+	}
+
+	removeBlock(block: Block) {
+		block.parent.removeChild(block);
+		this.unregisterBlockFromGrid(block);
+		this.removeBlockListeners(block);
+	}
+
+	checkBlockNeighbors(block: Block, alreadyCheckedKeys: object, resultGroup: Block[]): Block[] {
+		this.checkNeighbor(block, block.column - 1, block.row, alreadyCheckedKeys, resultGroup);
+		this.checkNeighbor(block, block.column + 1, block.row, alreadyCheckedKeys, resultGroup);
+		this.checkNeighbor(block, block.column, block.row - 1, alreadyCheckedKeys, resultGroup);
+		this.checkNeighbor(block, block.column, block.row + 1, alreadyCheckedKeys, resultGroup);
+		return resultGroup;
+	}
+
+	checkNeighbor(block: Block, neighborColumn: number, neighborRow: number, alreadyChecked: object, resultGroup: Block[]) {
+		let gridKey: string = this.getGridKey(neighborColumn, neighborRow);
+		if (!alreadyChecked[gridKey]) {
+			alreadyChecked[gridKey] = true;
+			let neighbor: Block = this.grid[gridKey];
+			if (neighbor && neighbor.prefabIndex == block.prefabIndex) {
+				resultGroup.push(neighbor);
+				this.checkBlockNeighbors(neighbor, alreadyChecked, resultGroup);
 			}
 		}
 	}
@@ -68,7 +110,55 @@ export default class Field extends cc.Component {
 		this.blocksContainer.y = -(totalBlocksHeight * this.blocksContainer.scaleY) / 2;
 	}
 
-	createRandomBlock(): cc.Node {
-		return cc.instantiate(this.blocksPrefabs[Math.floor(Math.random() * this.blocksPrefabs.length)]);
+	createRandomBlock(): Block {
+		return new Block();
+	}
+
+	registerBlockInGrid(block: Block) {
+		this.grid[this.getGridKey(block.column, block.row)] = block;
+	}
+
+	unregisterBlockFromGrid(block: Block) {
+		this.grid[this.getGridKey(block.column, block.row)] = null;
+	}
+
+	getGridKey(column: number, row: number): string {
+		return column + 'x' + row;
+	}
+
+	onDestroy() {
+		this.removeAllBlocksListeners();
+	}
+
+	removeAllBlocksListeners() {
+		for (let key in this.grid) {
+			let block: Block = this.grid[key];
+			if (block) {
+				this.removeBlockListeners(block);
+			}
+		}
+	}
+
+	removeBlockListeners(block: Block) {
+		block.getNode().off(cc.Node.EventType.TOUCH_START);
+	}
+}
+
+class Block extends cc.Node {
+	public static prefabs: cc.Prefab[];
+	public column: number;
+	public row: number;
+	public prefabIndex: number;
+	private node: cc.Node;
+
+	constructor() {
+		super();
+		this.prefabIndex = Math.floor(Math.random() * Block.prefabs.length);
+		this.node = cc.instantiate(Block.prefabs[this.prefabIndex]);
+		this.addChild(this.node);
+	}
+
+	getNode(): cc.Node {
+		return this.node;
 	}
 }

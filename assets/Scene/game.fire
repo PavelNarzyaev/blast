@@ -1106,6 +1106,7 @@
     "padding": 60,
     "columnsNum": 3,
     "rowsNum": 8,
+    "minGroupSize": 2,
     "prefabSize": 171,
     "blocksPrefabs": [
       {
