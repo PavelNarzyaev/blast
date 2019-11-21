@@ -3,16 +3,25 @@ const {ccclass, property} = cc._decorator;
 @ccclass
 export default class Field extends cc.Component {
 	@property
-	columnsNum: number = 0;
+	maxWidthPercent: number = .5;
 
 	@property
-	rowsNum: number = 0;
+	maxHeightPercent: number = .8;
 
 	@property
-	prefabSize: number = 0;
+	xPercent: number = .3;
 
 	@property
-	blocksContainerMargin: number = 0;
+	padding: number = 60;
+
+	@property
+	columnsNum: number = 5;
+
+	@property
+	rowsNum: number = 5;
+
+	@property
+	prefabSize: number = 171;
 
 	@property([cc.Prefab])
 	blocksPrefabs: cc.Prefab[] = [];
@@ -20,20 +29,23 @@ export default class Field extends cc.Component {
 	blocksContainer: cc.Node;
 
 	start() {
-		this.node.height = this.rowsNum / this.columnsNum * this.node.width;
+		this.alignNode();
 		this.initBlocksContainer();
+	}
+
+	alignNode() {
+		this.node.height = (this.rowsNum / this.columnsNum) * (this.node.width - this.padding * 2) + this.padding * 2;
+		const nodeScaleByWidth: number = this.node.parent.width * this.maxWidthPercent / this.node.width;
+		const nodeScaleByHeight: number = this.node.parent.height * this.maxHeightPercent / this.node.height;
+		this.node.scale = Math.min(nodeScaleByWidth, nodeScaleByHeight);
+		this.node.x = -this.node.parent.width / 2 + this.node.parent.width * this.xPercent;
 	}
 
 	initBlocksContainer() {
 		this.blocksContainer = new cc.Node();
 		this.node.addChild(this.blocksContainer);
 		this.fillBlocksContainer();
-		const totalBlocksWidth: number = this.prefabSize * this.columnsNum;
-		const totalBlocksHeight: number = this.prefabSize * this.rowsNum;
-		this.blocksContainer.scaleX = (this.node.width - this.blocksContainerMargin * 2) / totalBlocksWidth;
-		this.blocksContainer.scaleY = (this.node.height - this.blocksContainerMargin * 2) / totalBlocksHeight;
-		this.blocksContainer.x = -(totalBlocksWidth * this.blocksContainer.scaleX) / 2;
-		this.blocksContainer.y = -(totalBlocksHeight * this.blocksContainer.scaleY) / 2;
+		this.alignBlocksContainer();
 	}
 
 	fillBlocksContainer() {
@@ -45,6 +57,15 @@ export default class Field extends cc.Component {
 				this.blocksContainer.addChild(randomBlock);
 			}
 		}
+	}
+
+	alignBlocksContainer() {
+		const totalBlocksWidth: number = this.prefabSize * this.columnsNum;
+		const totalBlocksHeight: number = this.prefabSize * this.rowsNum;
+		this.blocksContainer.scaleX = (this.node.width - this.padding * 2) / totalBlocksWidth;
+		this.blocksContainer.scaleY = (this.node.height - this.padding * 2) / totalBlocksHeight;
+		this.blocksContainer.x = -(totalBlocksWidth * this.blocksContainer.scaleX) / 2;
+		this.blocksContainer.y = -(totalBlocksHeight * this.blocksContainer.scaleY) / 2;
 	}
 
 	createRandomBlock(): cc.Node {
