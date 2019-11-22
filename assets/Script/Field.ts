@@ -60,34 +60,37 @@ export default class Field extends cc.Component {
 	fillBlocksContainer() {
 		for (let row: number = 0; row < this.rowsNum; row++) {
 			for (let column: number = 0; column < this.columnsNum; column++) {
-				let randomBlock: Block = this.createRandomBlock();
-				randomBlock.row = row;
-				randomBlock.column = column;
-				this.registerBlockInGrid(randomBlock);
-				randomBlock.x = this.prefabSize * column;
-				randomBlock.y = this.prefabSize * row;
-				this.blocksContainer.addChild(randomBlock);
-				randomBlock.getNode().on(cc.Node.EventType.TOUCH_START, function () { this.onBlockTouch(randomBlock); }, this);
+				this.createBlock(
+					this.prefabSize * column,
+					this.prefabSize * row,
+					column,
+					row
+				);
 			}
 		}
+	}
+
+	createBlock(x: number, y: number, column: number, row: number, animationCallerBlock: Block = null) {
+		let newBlock: Block = new Block();
+		newBlock.x = x;
+		newBlock.y = y;
+		newBlock.column = column;
+		newBlock.row = row;
+		this.registerBlockInGrid(newBlock);
+		if (animationCallerBlock) {
+			this.startBlockAnimation(newBlock, animationCallerBlock);
+		}
+		this.blocksContainer.addChild(newBlock);
+		newBlock.getNode().on(cc.Node.EventType.TOUCH_START, function () { this.onBlockTouch(newBlock); }, this);
 	}
 
 	onBlockTouch(block: Block) {
 		const group: Block[] = this.calculateBlockGroup(block);
 		if (group.length >= this.minGroupSize) {
-			group.forEach(this.removeBlock.bind(this));
 			while (group.length) {
 				let removedBlock: Block = group.pop();
-				for (let row: number = removedBlock.row; row < this.rowsNum; row++) {
-					let animatedBlock: Block = this.getBlockFromGrid(removedBlock.column, row);
-					if (animatedBlock) {
-						if (!animatedBlock.animationInProgress()) {
-							animatedBlock.startAnimation(block.getId());
-						}
-						animatedBlock.decreaseAnimationTargetRow();
-						this.animatedBlocks[animatedBlock.getId()] = animatedBlock;
-					}
-				}
+				this.removeBlock(removedBlock);
+				this.refreshAnimations(block, removedBlock);
 			}
 		}
 	}
@@ -124,27 +127,46 @@ export default class Field extends cc.Component {
 	}
 
 	removeBlock(block: Block) {
-		block.stopAnimation();
-		delete this.animatedBlocks[block.getId()];
+		this.stopBlockAnimation(block);
 		block.parent.removeChild(block);
 		this.unregisterBlockFromGrid(block);
 		this.removeBlockListeners(block);
+	}
+
+	refreshAnimations(animationCallerBlock: Block, removedBlock: Block) {
+		for (let row: number = removedBlock.row; row < this.rowsNum; row++) {
+			let animatedBlock: Block = this.getBlockFromGrid(removedBlock.column, row);
+			if (animatedBlock) {
+				this.unregisterBlockFromGrid(animatedBlock);
+				animatedBlock.row--;
+				this.registerBlockInGrid(animatedBlock);
+				this.startBlockAnimation(animatedBlock, animationCallerBlock);
+			}
+		}
+	}
+
+	startBlockAnimation(animatedBlock: Block, animationCallerBlock: Block) {
+		if (!this.animatedBlocks[animatedBlock.getId()]) {
+			animatedBlock.startAnimation(animationCallerBlock.getId());
+			this.animatedBlocks[animatedBlock.getId()] = animatedBlock;
+		}
+	}
+
+	stopBlockAnimation(animatedBlock: Block) {
+		animatedBlock.stopAnimation();
+		delete this.animatedBlocks[animatedBlock.getId()];
 	}
 
 	update(dt: number) {
 		for (let id in this.animatedBlocks) {
 			let animatedBlock: Block = this.animatedBlocks[id];
 			let nextY: number = animatedBlock.y - this.blocksMovingSpeed * dt;
-			let maxY: number = animatedBlock.getAnimationTargetRow() * this.prefabSize; // TODO: target y does not should recalculated so often
+			let maxY: number = animatedBlock.row * this.prefabSize; // TODO: target y does not should to be recalculated so often
 			if (nextY > maxY) {
 				animatedBlock.y = nextY;
 			} else {
-				this.unregisterBlockFromGrid(animatedBlock);
-				animatedBlock.row = animatedBlock.getAnimationTargetRow();
-				this.registerBlockInGrid(animatedBlock);
-				animatedBlock.stopAnimation();
 				animatedBlock.y = maxY;
-				delete this.animatedBlocks[id];
+				this.stopBlockAnimation(animatedBlock);
 			}
 		}
 	}
@@ -158,10 +180,6 @@ export default class Field extends cc.Component {
 		this.blocksContainer.y = -(totalBlocksHeight * this.blocksContainer.scaleY) / 2;
 	}
 
-	createRandomBlock(): Block {
-		return new Block();
-	}
-
 	registerBlockInGrid(block: Block) {
 		this.grid[this.getGridKey(block.column, block.row)] = block;
 	}
@@ -171,7 +189,9 @@ export default class Field extends cc.Component {
 	}
 
 	unregisterBlockFromGrid(block: Block) {
-		delete this.grid[this.getGridKey(block.column, block.row)];
+		if (this.grid[this.getGridKey(block.column, block.row)] == block) {
+			delete this.grid[this.getGridKey(block.column, block.row)];
+		}
 	}
 
 	getGridKey(column: number, row: number): string {
@@ -198,11 +218,10 @@ class Block extends cc.Node {
 	public static prefabs: cc.Prefab[];
 	private static createdBlocksCounter: number = 0;
 	public column: number;
-	public row: number;
+	public row: number; // current row or target row if block animated
 	public prefabIndex: number;
 	private node: cc.Node;
 	private id: number;
-	private animationTargetRow: number = null;
 	private animationCallerId: number = null;
 
 	constructor() {
@@ -222,18 +241,6 @@ class Block extends cc.Node {
 		return this.id;
 	}
 
-	decreaseAnimationTargetRow() {
-		if (this.animationTargetRow === null) {
-			this.animationTargetRow = this.row - 1;
-		} else {
-			this.animationTargetRow--;
-		}
-	}
-
-	getAnimationTargetRow() {
-		return this.animationTargetRow;
-	}
-
 	getAnimationCallerId() {
 		return this.animationCallerId;
 	}
@@ -242,12 +249,7 @@ class Block extends cc.Node {
 		this.animationCallerId = callerId;
 	}
 
-	animationInProgress() {
-		return this.animationCallerId !== null;
-	}
-
 	stopAnimation() {
-		this.animationTargetRow = null;
 		this.animationCallerId = null;
 	}
 }
