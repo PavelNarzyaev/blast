@@ -177,7 +177,7 @@
       "array": [
         0,
         0,
-        351.6889343261719,
+        342.18829345703125,
         0,
         0,
         0,
@@ -1100,11 +1100,12 @@
       "__id__": 21
     },
     "_enabled": true,
+    "blocksMovingSpeed": 800,
     "maxWidthPercent": 0.5,
     "maxHeightPercent": 0.8,
     "xPercent": 0.3,
     "padding": 60,
-    "columnsNum": 3,
+    "columnsNum": 8,
     "rowsNum": 8,
     "minGroupSize": 2,
     "prefabSize": 171,
