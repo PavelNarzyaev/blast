@@ -69,36 +69,43 @@ export default class Field extends cc.Component {
 	}
 
 	onBlockTouch(block: Block) {
-		const group: Block[] = this.checkBlockNeighbors(block, { [this.getGridKey(block.column, block.row)]: true }, [block]);
+		const group: Block[] = this.calculateBlockGroup(block);
 		if (group.length >= this.minGroupSize) {
 			group.forEach(this.removeBlock.bind(this));
 		}
+	}
+
+	calculateBlockGroup(block: Block) {
+		let group: Block[] = [block];
+		let alreadyCheckedKeys: object = { [this.getGridKey(block.column, block.row)]: true };
+
+		let checkBlockNeighbors = function (checkedBlock: Block) {
+			checkNeighbor.bind(this)(checkedBlock.column - 1, checkedBlock.row);
+			checkNeighbor.bind(this)(checkedBlock.column + 1, checkedBlock.row);
+			checkNeighbor.bind(this)(checkedBlock.column, checkedBlock.row - 1);
+			checkNeighbor.bind(this)(checkedBlock.column, checkedBlock.row + 1);
+		}
+
+		let checkNeighbor = function (neighborColumn: number, neighborRow: number) {
+			let gridKey: string = this.getGridKey(neighborColumn, neighborRow);
+			if (!alreadyCheckedKeys[gridKey]) {
+				alreadyCheckedKeys[gridKey] = true;
+				let neighbor: Block = this.grid[gridKey];
+				if (neighbor && neighbor.prefabIndex == block.prefabIndex) {
+					group.push(neighbor);
+					checkBlockNeighbors.bind(this)(neighbor);
+				}
+			}
+		}
+
+		checkBlockNeighbors.bind(this)(block);
+		return group;
 	}
 
 	removeBlock(block: Block) {
 		block.parent.removeChild(block);
 		this.unregisterBlockFromGrid(block);
 		this.removeBlockListeners(block);
-	}
-
-	checkBlockNeighbors(block: Block, alreadyCheckedKeys: object, resultGroup: Block[]): Block[] {
-		this.checkNeighbor(block, block.column - 1, block.row, alreadyCheckedKeys, resultGroup);
-		this.checkNeighbor(block, block.column + 1, block.row, alreadyCheckedKeys, resultGroup);
-		this.checkNeighbor(block, block.column, block.row - 1, alreadyCheckedKeys, resultGroup);
-		this.checkNeighbor(block, block.column, block.row + 1, alreadyCheckedKeys, resultGroup);
-		return resultGroup;
-	}
-
-	checkNeighbor(block: Block, neighborColumn: number, neighborRow: number, alreadyChecked: object, resultGroup: Block[]) {
-		let gridKey: string = this.getGridKey(neighborColumn, neighborRow);
-		if (!alreadyChecked[gridKey]) {
-			alreadyChecked[gridKey] = true;
-			let neighbor: Block = this.grid[gridKey];
-			if (neighbor && neighbor.prefabIndex == block.prefabIndex) {
-				resultGroup.push(neighbor);
-				this.checkBlockNeighbors(neighbor, alreadyChecked, resultGroup);
-			}
-		}
 	}
 
 	alignBlocksContainer() {
