@@ -1100,7 +1100,7 @@
       "__id__": 21
     },
     "_enabled": true,
-    "blocksMovingSpeed": 800,
+    "blocksMovingSpeed": 600,
     "maxWidthPercent": 0.5,
     "maxHeightPercent": 0.8,
     "xPercent": 0.3,

@@ -81,6 +81,9 @@ export default class Field extends cc.Component {
 				for (let row: number = removedBlock.row; row < this.rowsNum; row++) {
 					let animatedBlock: Block = this.getBlockFromGrid(removedBlock.column, row);
 					if (animatedBlock) {
+						if (!animatedBlock.animationInProgress()) {
+							animatedBlock.startAnimation(block.getId());
+						}
 						animatedBlock.decreaseAnimationTargetRow();
 						this.animatedBlocks[animatedBlock.getId()] = animatedBlock;
 					}
@@ -108,7 +111,7 @@ export default class Field extends cc.Component {
 				if (
 					neighborBlock &&
 					neighborBlock.prefabIndex == block.prefabIndex &&
-					neighborBlock.animationInProgress() == block.animationInProgress()
+					neighborBlock.getAnimationCallerId() == block.getAnimationCallerId() // not animated blocks or animated in one time
 				) {
 					group.push(neighborBlock);
 					checkBlockNeighbors.bind(this)(neighborBlock);
@@ -200,6 +203,7 @@ class Block extends cc.Node {
 	private node: cc.Node;
 	private id: number;
 	private animationTargetRow: number = null;
+	private animationCallerId: number = null;
 
 	constructor() {
 		super();
@@ -230,11 +234,20 @@ class Block extends cc.Node {
 		return this.animationTargetRow;
 	}
 
+	getAnimationCallerId() {
+		return this.animationCallerId;
+	}
+
+	startAnimation(callerId: number) {
+		this.animationCallerId = callerId;
+	}
+
 	animationInProgress() {
-		return this.animationTargetRow !== null;
+		return this.animationCallerId !== null;
 	}
 
 	stopAnimation() {
 		this.animationTargetRow = null;
+		this.animationCallerId = null;
 	}
 }
