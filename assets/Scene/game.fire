@@ -1106,7 +1106,7 @@
     "xPercent": 0.3,
     "padding": 60,
     "columnsNum": 8,
-    "rowsNum": 8,
+    "rowsNum": 10,
     "minGroupSize": 2,
     "prefabSize": 171,
     "blocksPrefabs": [

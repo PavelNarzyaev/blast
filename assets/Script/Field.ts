@@ -87,11 +87,18 @@ export default class Field extends cc.Component {
 	onBlockTouch(block: Block) {
 		const group: Block[] = this.calculateBlockGroup(block);
 		if (group.length >= this.minGroupSize) {
+			let emptyCellsInColumns: object = {};
 			while (group.length) {
 				let removedBlock: Block = group.pop();
 				this.removeBlock(removedBlock);
 				this.refreshAnimations(block, removedBlock);
+				if (!emptyCellsInColumns[removedBlock.column]) {
+					emptyCellsInColumns[removedBlock.column] = 1;
+				} else {
+					emptyCellsInColumns[removedBlock.column]++;
+				}
 			}
+			this.createTopBlocks(emptyCellsInColumns, block);
 		}
 	}
 
@@ -155,6 +162,26 @@ export default class Field extends cc.Component {
 	stopBlockAnimation(animatedBlock: Block) {
 		animatedBlock.stopAnimation();
 		delete this.animatedBlocks[animatedBlock.getId()];
+	}
+
+	createTopBlocks(emptyCellsInColumns: object, animationCallerBlock: Block) {
+		for (let column in emptyCellsInColumns) {
+			let createdBlocksCounter: number = 0;
+			while (createdBlocksCounter < emptyCellsInColumns[column]) {
+				const newBlockRow: number = this.rowsNum - emptyCellsInColumns[column] + createdBlocksCounter;
+				const bottomBlock: Block = this.getBlockFromGrid(Number(column), newBlockRow - 1);
+				const newBlockMinY: number = this.rowsNum * this.prefabSize;
+				const newBlockY: number = bottomBlock ? Math.max(bottomBlock.y + this.prefabSize, newBlockMinY) : newBlockMinY;
+				this.createBlock(
+					Number(column) * this.prefabSize,
+					newBlockY,
+					Number(column),
+					newBlockRow,
+					animationCallerBlock
+				);
+				createdBlocksCounter++;
+			}
+		}
 	}
 
 	update(dt: number) {
