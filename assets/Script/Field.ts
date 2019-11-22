@@ -73,18 +73,16 @@ export default class Field extends cc.Component {
 	}
 
 	onBlockTouch(block: Block) {
-		if (!block.animationInProgress()) {
-			const group: Block[] = this.calculateBlockGroup(block);
-			if (group.length >= this.minGroupSize) {
-				group.forEach(this.removeBlock.bind(this));
-				while (group.length) {
-					let removedBlock: Block = group.pop();
-					for (let row: number = removedBlock.row; row < this.rowsNum; row++) {
-						let animatedBlock: Block = this.getBlockFromGrid(removedBlock.column, row);
-						if (animatedBlock) {
-							animatedBlock.decreaseTargetRow();
-							this.animatedBlocks[animatedBlock.getId()] = animatedBlock;
-						}
+		const group: Block[] = this.calculateBlockGroup(block);
+		if (group.length >= this.minGroupSize) {
+			group.forEach(this.removeBlock.bind(this));
+			while (group.length) {
+				let removedBlock: Block = group.pop();
+				for (let row: number = removedBlock.row; row < this.rowsNum; row++) {
+					let animatedBlock: Block = this.getBlockFromGrid(removedBlock.column, row);
+					if (animatedBlock) {
+						animatedBlock.decreaseAnimationTargetRow();
+						this.animatedBlocks[animatedBlock.getId()] = animatedBlock;
 					}
 				}
 			}
@@ -110,7 +108,7 @@ export default class Field extends cc.Component {
 				if (
 					neighborBlock &&
 					neighborBlock.prefabIndex == block.prefabIndex &&
-					!neighborBlock.animationInProgress()
+					neighborBlock.animationInProgress() == block.animationInProgress()
 				) {
 					group.push(neighborBlock);
 					checkBlockNeighbors.bind(this)(neighborBlock);
@@ -123,6 +121,8 @@ export default class Field extends cc.Component {
 	}
 
 	removeBlock(block: Block) {
+		block.stopAnimation();
+		delete this.animatedBlocks[block.getId()];
 		block.parent.removeChild(block);
 		this.unregisterBlockFromGrid(block);
 		this.removeBlockListeners(block);
@@ -168,7 +168,7 @@ export default class Field extends cc.Component {
 	}
 
 	unregisterBlockFromGrid(block: Block) {
-		delete this.grid[this.getGridKey(block.column, block.row)] = null;
+		delete this.grid[this.getGridKey(block.column, block.row)];
 	}
 
 	getGridKey(column: number, row: number): string {
@@ -218,7 +218,7 @@ class Block extends cc.Node {
 		return this.id;
 	}
 
-	decreaseTargetRow() {
+	decreaseAnimationTargetRow() {
 		if (this.animationTargetRow === null) {
 			this.animationTargetRow = this.row - 1;
 		} else {
