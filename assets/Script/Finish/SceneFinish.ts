@@ -1,4 +1,4 @@
-import Model from "./Model";
+import Model from "../Model";
 
 const { ccclass, property } = cc._decorator;
 
