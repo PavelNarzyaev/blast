@@ -15,9 +15,6 @@ export default class Field extends cc.Component {
 	xPercent: number = .3;
 
 	@property
-	padding: number = 60;
-
-	@property
 	columnsNum: number = 5;
 
 	@property
@@ -29,35 +26,36 @@ export default class Field extends cc.Component {
 	@property
 	prefabSize: number = 171;
 
+	@property(cc.Node)
+	gridContainer: cc.Node = null;
+
 	@property([cc.Prefab])
 	blocksPrefabs: cc.Prefab[] = [];
 
-	blocksContainer: cc.Node;
 	grid: object = {};
 	animatedBlocks: object = {};
 
 	start() {
 		Block.prefabs = this.blocksPrefabs;
 		this.alignNode();
-		this.initBlocksContainer();
+		this.initGridContainer();
 	}
 
 	alignNode() {
-		this.node.height = (this.rowsNum / this.columnsNum) * (this.node.width - this.padding * 2) + this.padding * 2;
+		const gridContainerWidget: cc.Widget = this.gridContainer.getComponent(cc.Widget);
+		this.node.height = (this.rowsNum / this.columnsNum) * this.gridContainer.width + gridContainerWidget.top + gridContainerWidget.bottom;
 		const nodeScaleByWidth: number = this.node.parent.width * this.maxWidthPercent / this.node.width;
 		const nodeScaleByHeight: number = this.node.parent.height * this.maxHeightPercent / this.node.height;
 		this.node.scale = Math.min(nodeScaleByWidth, nodeScaleByHeight);
 		this.node.x = -this.node.parent.width / 2 + this.node.parent.width * this.xPercent;
 	}
 
-	initBlocksContainer() {
-		this.blocksContainer = new cc.Node();
-		this.node.addChild(this.blocksContainer);
-		this.fillBlocksContainer();
-		this.alignBlocksContainer();
+	initGridContainer() {
+		this.fillGridContainer();
+		this.alignGridContainer();
 	}
 
-	fillBlocksContainer() {
+	fillGridContainer() {
 		for (let row: number = 0; row < this.rowsNum; row++) {
 			for (let column: number = 0; column < this.columnsNum; column++) {
 				this.createBlock(
@@ -80,7 +78,7 @@ export default class Field extends cc.Component {
 		if (animationCallerBlock) {
 			this.startBlockAnimation(newBlock, animationCallerBlock);
 		}
-		this.blocksContainer.addChild(newBlock);
+		this.gridContainer.addChild(newBlock);
 		newBlock.getNode().on(cc.Node.EventType.TOUCH_START, function () { this.onBlockTouch(newBlock); }, this);
 	}
 
@@ -198,13 +196,13 @@ export default class Field extends cc.Component {
 		}
 	}
 
-	alignBlocksContainer() {
+	alignGridContainer() {
 		const totalBlocksWidth: number = this.prefabSize * this.columnsNum;
 		const totalBlocksHeight: number = this.prefabSize * this.rowsNum;
-		this.blocksContainer.scaleX = (this.node.width - this.padding * 2) / totalBlocksWidth;
-		this.blocksContainer.scaleY = (this.node.height - this.padding * 2) / totalBlocksHeight;
-		this.blocksContainer.x = -(totalBlocksWidth * this.blocksContainer.scaleX) / 2;
-		this.blocksContainer.y = -(totalBlocksHeight * this.blocksContainer.scaleY) / 2;
+		
+		const gridContainerWidget: cc.Widget = this.gridContainer.getComponent(cc.Widget);
+		this.gridContainer.scaleY = (this.node.height - gridContainerWidget.top - gridContainerWidget.bottom) / totalBlocksHeight;
+		this.gridContainer.scaleX = (this.node.width - gridContainerWidget.left - gridContainerWidget.right) / totalBlocksWidth;
 	}
 
 	registerBlockInGrid(block: Block) {
