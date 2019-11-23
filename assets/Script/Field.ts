@@ -6,15 +6,6 @@ export default class Field extends cc.Component {
 	blocksMovingSpeed: number = 100;
 
 	@property
-	maxWidthPercent: number = .5;
-
-	@property
-	maxHeightPercent: number = .8;
-
-	@property
-	xPercent: number = .3;
-
-	@property
 	columnsNum: number = 5;
 
 	@property
@@ -27,35 +18,31 @@ export default class Field extends cc.Component {
 	prefabSize: number = 171;
 
 	@property(cc.Node)
-	gridContainer: cc.Node = null;
+	viewport: cc.Node = null;
 
 	@property([cc.Prefab])
 	blocksPrefabs: cc.Prefab[] = [];
 
-	grid: object = {};
-	animatedBlocks: object = {};
+	grid: object = {}; // key = "{column}x{row}" value = block
+	animatedBlocks: object = {}; // key = "block.id" value = block
+
+	onLoad() {
+		this.node.on(cc.Node.EventType.SIZE_CHANGED, this.alignViewport, this);
+	}
+
+	alignViewport() {
+		const totalBlocksWidth: number = this.prefabSize * this.columnsNum;
+		const totalBlocksHeight: number = this.prefabSize * this.rowsNum;
+		this.viewport.scaleY = (this.node.height - this.calculateViewportVerticalMargins()) / totalBlocksHeight;
+		this.viewport.scaleX = (this.node.width - this.calculateViewportHorizontalMargins()) / totalBlocksWidth;
+	}
 
 	start() {
 		Block.prefabs = this.blocksPrefabs;
-		this.alignNode();
-		this.initGridContainer();
+		this.fillViewport();
 	}
 
-	alignNode() {
-		const gridContainerWidget: cc.Widget = this.gridContainer.getComponent(cc.Widget);
-		this.node.height = (this.rowsNum / this.columnsNum) * this.gridContainer.width + gridContainerWidget.top + gridContainerWidget.bottom;
-		const nodeScaleByWidth: number = this.node.parent.width * this.maxWidthPercent / this.node.width;
-		const nodeScaleByHeight: number = this.node.parent.height * this.maxHeightPercent / this.node.height;
-		this.node.scale = Math.min(nodeScaleByWidth, nodeScaleByHeight);
-		this.node.x = -this.node.parent.width / 2 + this.node.parent.width * this.xPercent;
-	}
-
-	initGridContainer() {
-		this.fillGridContainer();
-		this.alignGridContainer();
-	}
-
-	fillGridContainer() {
+	fillViewport() {
 		for (let row: number = 0; row < this.rowsNum; row++) {
 			for (let column: number = 0; column < this.columnsNum; column++) {
 				this.createBlock(
@@ -78,7 +65,7 @@ export default class Field extends cc.Component {
 		if (animationCallerBlock) {
 			this.startBlockAnimation(newBlock, animationCallerBlock);
 		}
-		this.gridContainer.addChild(newBlock);
+		this.viewport.addChild(newBlock);
 		newBlock.getNode().on(cc.Node.EventType.TOUCH_START, function () { this.onBlockTouch(newBlock); }, this);
 	}
 
@@ -196,15 +183,6 @@ export default class Field extends cc.Component {
 		}
 	}
 
-	alignGridContainer() {
-		const totalBlocksWidth: number = this.prefabSize * this.columnsNum;
-		const totalBlocksHeight: number = this.prefabSize * this.rowsNum;
-		
-		const gridContainerWidget: cc.Widget = this.gridContainer.getComponent(cc.Widget);
-		this.gridContainer.scaleY = (this.node.height - gridContainerWidget.top - gridContainerWidget.bottom) / totalBlocksHeight;
-		this.gridContainer.scaleX = (this.node.width - gridContainerWidget.left - gridContainerWidget.right) / totalBlocksWidth;
-	}
-
 	registerBlockInGrid(block: Block) {
 		this.grid[this.getGridKey(block.column, block.row)] = block;
 	}
@@ -224,6 +202,7 @@ export default class Field extends cc.Component {
 	}
 
 	onDestroy() {
+		this.node.off(cc.Node.EventType.SIZE_CHANGED, this.alignViewport, this);
 		this.removeAllBlocksListeners();
 	}
 
@@ -236,6 +215,16 @@ export default class Field extends cc.Component {
 
 	removeBlockListeners(block: Block) {
 		block.getNode().off(cc.Node.EventType.TOUCH_START);
+	}
+
+	calculateViewportVerticalMargins(): number {
+		const viewportWidget: cc.Widget = this.viewport.getComponent(cc.Widget);
+		return viewportWidget.top + viewportWidget.bottom;
+	}
+
+	calculateViewportHorizontalMargins(): number {
+		const viewportWidget: cc.Widget = this.viewport.getComponent(cc.Widget);
+		return viewportWidget.left + viewportWidget.bottom;
 	}
 }
 
