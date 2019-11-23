@@ -1,6 +1,6 @@
 {
   "ver": "2.3.3",
-  "uuid": "0031fdd3-0e73-4e66-bc11-26d1055ca203",
+  "uuid": "411847a4-77b4-4ef3-a23b-3e2403864769",
   "type": "sprite",
   "wrapMode": "clamp",
   "filterMode": "bilinear",
@@ -9,10 +9,10 @@
   "packable": true,
   "platformSettings": {},
   "subMetas": {
-    "test": {
+    "fonGame": {
       "ver": "1.0.4",
-      "uuid": "d332181b-3719-4ac1-8b87-d764121526fd",
-      "rawTextureUuid": "0031fdd3-0e73-4e66-bc11-26d1055ca203",
+      "uuid": "49cadcfa-4a55-4665-81ce-cad8ef976ee9",
+      "rawTextureUuid": "411847a4-77b4-4ef3-a23b-3e2403864769",
       "trimType": "auto",
       "trimThreshold": 1,
       "rotated": false,
@@ -20,10 +20,10 @@
       "offsetY": 0,
       "trimX": 0,
       "trimY": 0,
-      "width": 50,
-      "height": 50,
-      "rawWidth": 50,
-      "rawHeight": 50,
+      "width": 300,
+      "height": 300,
+      "rawWidth": 300,
+      "rawHeight": 300,
       "borderTop": 0,
       "borderBottom": 0,
       "borderLeft": 0,
