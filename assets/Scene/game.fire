@@ -2442,18 +2442,19 @@
     "field": {
       "__id__": 32
     },
-    "fieldMaxHeightPercent": 0.75,
-    "fieldMaxWidthPercent": 0.5,
+    "fieldFrameWidth": 0.5,
+    "fieldFrameHeight": 0.75,
+    "gapBetweenFieldAndMenu": 0.05,
     "menu": {
       "__id__": 45
     },
-    "menuWidthPercent": 0.35,
-    "gapBetweenFieldAndMenuPercent": 0.05,
+    "menuFrameWidth": 0.35,
+    "menuFrameHeight": 0.5,
     "progress": {
       "__id__": 53
     },
-    "progressHeightPercent": 0.1,
-    "progressMaxWidthPercent": 0.8,
+    "progressFrameWidth": 0.8,
+    "progressFrameHeight": 0.1,
     "_id": "6aCrjiIupBRoGmz2G36nhw"
   },
   {

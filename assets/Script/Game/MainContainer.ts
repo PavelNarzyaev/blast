@@ -10,28 +10,31 @@ export default class MainContainer extends cc.Component {
 	protected field: Field = null;
 
 	@property
-	protected fieldMaxHeightPercent: number = 1;
+	protected fieldFrameWidth: number = .5;
 
 	@property
-	protected fieldMaxWidthPercent: number = 1;
+	protected fieldFrameHeight: number = .75;
+
+	@property
+	protected gapBetweenFieldAndMenu: number = .05;
 
 	@property(Menu)
 	protected menu: Menu = null;
 
 	@property
-	protected menuWidthPercent: number = 1;
+	protected menuFrameWidth: number = .35;
 
 	@property
-	protected gapBetweenFieldAndMenuPercent: number = 0;
+	protected menuFrameHeight: number = .5;
 
 	@property(Progress)
 	protected progress: Progress = null;
 
 	@property
-	protected progressHeightPercent: number = .2;
+	protected progressFrameWidth: number = .8;
 
 	@property
-	protected progressMaxWidthPercent: number = .8;
+	protected progressFrameHeight: number = .1;
 
 	protected onLoad(): void {
 		this.node.on(cc.Node.EventType.SIZE_CHANGED, this.alignElements, this);
@@ -46,15 +49,15 @@ export default class MainContainer extends cc.Component {
 		this.resizeMenu();
 		this.resizeProgress();
 
-		const gap: number = this.node.width * this.gapBetweenFieldAndMenuPercent;
+		const gap: number = this.node.width * this.gapBetweenFieldAndMenu;
 		const totalWidth: number = this.field.node.width + gap + (this.menu.node.width * this.menu.node.scale);
 		this.field.node.x = (this.node.width - totalWidth) / 2;
 		this.menu.node.x = this.field.node.x + this.field.node.width + gap;
 	}
 
 	private resizeField(): void {
-		const viewportFrameWidth: number = this.node.width * this.fieldMaxWidthPercent - this.field.calculateViewportHorizontalMargins();
-		const viewportFrameHeight: number = this.node.height * this.fieldMaxHeightPercent - this.field.calculateViewportVerticalMargins();
+		const viewportFrameWidth: number = this.node.width * this.fieldFrameWidth - this.field.calculateViewportHorizontalMargins();
+		const viewportFrameHeight: number = this.node.height * this.fieldFrameHeight - this.field.calculateViewportVerticalMargins();
 		const viewportFrameAspectRatio: number = viewportFrameWidth / viewportFrameHeight;
 		const viewportAspectRatio: number = this.field.calculateViewportAspectRatio();
 
@@ -71,12 +74,15 @@ export default class MainContainer extends cc.Component {
 	}
 
 	private resizeMenu(): void {
-		this.menu.node.scale = this.node.width * this.menuWidthPercent / this.menu.node.width;
+		const scaleByWidth: number = this.node.width * this.menuFrameWidth / this.menu.node.width;
+		const scaleByHeight: number = this.node.height * this.menuFrameHeight / this.menu.node.height;
+		this.menu.node.scale = Math.min(scaleByWidth, scaleByHeight);
 	}
 
 	private resizeProgress(): void {
-		const maxScale: number = this.node.width * this.progressMaxWidthPercent / this.progress.node.width;
-		this.progress.node.scale = Math.min(this.node.height * this.progressHeightPercent / this.progress.node.height, maxScale);
+		const scaleByWidth: number = this.node.width * this.progressFrameWidth / this.progress.node.width;
+		const scaleByHeight: number = this.node.height * this.progressFrameHeight / this.progress.node.height;
+		this.progress.node.scale = Math.min(scaleByWidth, scaleByHeight);
 	}
 
 	protected onDestroy(): void {
