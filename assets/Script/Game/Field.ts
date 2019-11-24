@@ -26,6 +26,9 @@ export default class Field extends cc.Component {
 	@property([cc.Prefab])
 	protected blocksPrefabs: cc.Prefab[] = [];
 
+	@property(cc.Prefab)
+	protected particlePrefab: cc.Prefab = null;
+
 	private grid: object = {}; // key = "{column}x{row}" value = block
 	private animatedBlocks: object = {}; // key = "block.id" value = block
 
@@ -77,8 +80,9 @@ export default class Field extends cc.Component {
 		if (group.length >= this.minGroupSize) {
 			GameModel.addPointsForGroup(group.length);
 			const emptyCellsInColumns: object = {};
-			while (group.length) {
-				const removedBlock: Block = group.pop();
+			let removedBlocksCounter: number = 0;
+			while (removedBlocksCounter < group.length) {
+				const removedBlock: Block = group[removedBlocksCounter];
 				this.removeBlock(removedBlock);
 				this.refreshAnimations(block, removedBlock);
 				if (!emptyCellsInColumns[removedBlock.column]) {
@@ -86,8 +90,10 @@ export default class Field extends cc.Component {
 				} else {
 					emptyCellsInColumns[removedBlock.column]++;
 				}
+				removedBlocksCounter++;
 			}
 			this.createTopBlocks(emptyCellsInColumns, block);
+			this.showGroupRemovingAnimation(group);
 		}
 	}
 
@@ -127,6 +133,34 @@ export default class Field extends cc.Component {
 		block.parent.removeChild(block);
 		this.unregisterBlockFromGrid(block);
 		this.removeBlockListeners(block);
+	}
+
+	private showGroupRemovingAnimation(group: Block[]): void {
+		let i: number = 0;
+		while (i < group.length) {
+			const block: Block = group[i];
+			this.showBlockRemovingAnimation(block);
+			i++;
+		}
+	}
+
+	private showBlockRemovingAnimation(removedBlock: Block): void {
+		const particlesNode: cc.Node = cc.instantiate(this.particlePrefab);
+		particlesNode.x = this.viewport.x + (removedBlock.x + this.prefabSize / 2) * this.viewport.scale;
+		particlesNode.y = this.viewport.y + (removedBlock.y + this.prefabSize / 2) * this.viewport.scale;
+		this.node.addChild(particlesNode);
+
+		const particles: cc.ParticleSystem = particlesNode.getComponent(cc.ParticleSystem);
+		particles.custom = true;
+		particles.autoRemoveOnFinish = true;
+		particles.emitterMode = cc.ParticleSystem.EmitterMode.GRAVITY;
+		particles.duration = .1;
+		particles.life = .5;
+		particles.emissionRate = 300;
+		particles.speed = 20;
+		particles.angleVar = 180;
+		particles.posVar = new cc.Vec2(this.prefabSize * this.viewport.scale / 2, this.prefabSize * this.viewport.scale / 2);
+		particles.gravity = new cc.Vec2(0, -500);
 	}
 
 	private refreshAnimations(animationCallerBlock: Block, removedBlock: Block): void {

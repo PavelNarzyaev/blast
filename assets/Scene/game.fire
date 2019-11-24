@@ -1483,7 +1483,7 @@
     "_enabled": true,
     "blocksMovingSpeed": 600,
     "columnsNum": 7,
-    "rowsNum": 10,
+    "rowsNum": 8,
     "minGroupSize": 2,
     "prefabSize": 171,
     "viewport": {
@@ -1506,6 +1506,9 @@
         "__uuid__": "d83f7d6e-2b5e-4082-9d5e-ef8741765fff"
       }
     ],
+    "particlePrefab": {
+      "__uuid__": "cd33edea-55f5-46c2-958d-357a01384a36"
+    },
     "_id": "66vwnz7EpAIIpcMZI7TikW"
   },
   {
@@ -2483,7 +2486,7 @@
     },
     "_enabled": true,
     "startGameTime": 30,
-    "targetPoints": 1000,
+    "targetPoints": 2500,
     "_id": "36je8aQ9NE/6k0zbj2PB6A"
   }
 ]
