@@ -23,11 +23,11 @@ export default class Menu extends cc.Component {
 	}
 
 	private refreshTimer(): void {
-		if (GameModel.gameTimer <= 5 && !this.lastSeconds) {
+		if (GameModel.getTimer() <= 5 && !this.lastSeconds) {
 			this.lastSeconds = true;
 			this.timeLabel.node.color = new cc.Color(255, 0, 0);
 		}
-		this.timeLabel.string = GameModel.gameTimer.toString();
+		this.timeLabel.string = GameModel.getTimer().toString();
 	}
 
 	private refreshPoints(): void {

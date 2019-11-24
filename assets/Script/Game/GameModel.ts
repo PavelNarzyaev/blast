@@ -2,18 +2,18 @@ export default class GameModel {
 	public static TIMER_EVENT: string = 'timerEvent';
 	public static TIME_OUT_EVENT: string = 'timeOutEvent';
 	public static POINTS_CHANGED_EVENT: string = 'pointsChangedEvent';
-	public static gameTimer: number;
+	private static timer: number;
 	private static timerId: number;
 	private static points: number = 0;
 	private static targetPoints: number = 0;
 	private static progress: number = 0;
 
 	public static launchTimer(time: number): void {
-		GameModel.gameTimer = time;
+		GameModel.timer = time;
 		GameModel.timerId = window.setInterval(function () {
-			GameModel.gameTimer--;
+			GameModel.timer--;
 			let event: cc.Event.EventCustom;
-			if (GameModel.gameTimer > 0) {
+			if (GameModel.timer > 0) {
 				event = new cc.Event.EventCustom(GameModel.TIMER_EVENT, false);
 			} else {
 				GameModel.stopTimer();
@@ -21,6 +21,10 @@ export default class GameModel {
 			}
 			cc.systemEvent.dispatchEvent(event);
 		}, 1000);
+	}
+
+	public static getTimer(): number {
+		return GameModel.timer;
 	}
 
 	public static stopTimer(): void {
