@@ -1,20 +1,36 @@
 import Model from "../Model";
 
-const { ccclass } = cc._decorator;
+const { ccclass, property } = cc._decorator;
 
 @ccclass
 export default class SceneGame extends cc.Component {
+	@property
+	startGameTime: number = 99;
+
+	onLoad() {
+		Model.launchTimer(this.startGameTime);
+		cc.systemEvent.on(Model.TIME_OUT_EVENT, this.onTimeOut.bind(this));
+	}
+
+	onTimeOut() {
+		this.loadSceneFinish(false);
+	}
+
 	onButtonWinClick(): void {
-		Model.win = true;
-		this.loadSceneFinish();
+		this.loadSceneFinish(true);
 	}
 
 	onButtonLoseClick(): void {
-		Model.win = false;
-		this.loadSceneFinish();
+		this.loadSceneFinish(false);
 	}
 
-	loadSceneFinish(): void {
+	loadSceneFinish(win: boolean): void {
+		Model.win = win;
 		cc.director.loadScene('finish');
+	}
+
+	onDestroy() {
+		Model.stopTimer();
+		cc.systemEvent.off(Model.TIME_OUT_EVENT);
 	}
 }

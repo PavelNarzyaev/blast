@@ -2056,6 +2056,12 @@
       "__id__": 34
     },
     "_enabled": true,
+    "timeLabel": {
+      "__id__": 38
+    },
+    "scoresLabel": {
+      "__id__": 42
+    },
     "_id": "0ehUIm5rhBq5DZDDlCsGwB"
   },
   {
@@ -2130,6 +2136,7 @@
       "__id__": 2
     },
     "_enabled": true,
+    "startGameTime": 40,
     "_id": "36je8aQ9NE/6k0zbj2PB6A"
   }
 ]
