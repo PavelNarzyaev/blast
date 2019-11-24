@@ -1,3 +1,5 @@
+import Model from "../Model";
+
 const {ccclass, property} = cc._decorator;
 
 @ccclass
@@ -72,6 +74,7 @@ export default class Field extends cc.Component {
 	onBlockTouch(block: Block) {
 		const group: Block[] = this.calculateBlockGroup(block);
 		if (group.length >= this.minGroupSize) {
+			Model.addPointsForGroup(group.length);
 			let emptyCellsInColumns: object = {};
 			while (group.length) {
 				let removedBlock: Block = group.pop();

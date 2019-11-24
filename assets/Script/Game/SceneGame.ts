@@ -7,13 +7,27 @@ export default class SceneGame extends cc.Component {
 	@property
 	startGameTime: number = 99;
 
+	@property
+	targetPoints: number = 5000;
+
 	onLoad() {
-		Model.launchTimer(this.startGameTime);
 		cc.systemEvent.on(Model.TIME_OUT_EVENT, this.onTimeOut.bind(this));
+		cc.systemEvent.on(Model.POINTS_CHANGED_EVENT, this.onPointsChanged.bind(this));
+	}
+
+	start() {
+		Model.launchTimer(this.startGameTime);
+		Model.resetPoints();
 	}
 
 	onTimeOut() {
 		this.loadSceneFinish(false);
+	}
+
+	onPointsChanged() {
+		if (Model.getPoints() >= this.targetPoints) {
+			this.loadSceneFinish(true);
+		}
 	}
 
 	onButtonWinClick(): void {
@@ -32,5 +46,6 @@ export default class SceneGame extends cc.Component {
 	onDestroy() {
 		Model.stopTimer();
 		cc.systemEvent.off(Model.TIME_OUT_EVENT);
+		cc.systemEvent.off(Model.POINTS_CHANGED_EVENT);
 	}
 }

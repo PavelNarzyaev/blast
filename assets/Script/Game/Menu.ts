@@ -14,10 +14,12 @@ export default class Menu extends cc.Component {
 
 	onLoad() {
 		cc.systemEvent.on(Model.TIMER_EVENT, this.refreshTimer.bind(this));
+		cc.systemEvent.on(Model.POINTS_CHANGED_EVENT, this.refreshPoints.bind(this));
 	}
 
 	start() {
 		this.refreshTimer();
+		this.refreshPoints();
 	}
 
 	refreshTimer() {
@@ -28,7 +30,12 @@ export default class Menu extends cc.Component {
 		this.timeLabel.string = Model.gameTimer.toString();
 	}
 
+	refreshPoints() {
+		this.scoresLabel.string = Model.getPoints().toString();
+	}
+
 	onDestroy() {
 		cc.systemEvent.off(Model.TIMER_EVENT);
+		cc.systemEvent.off(Model.POINTS_CHANGED_EVENT);
 	}
 }
