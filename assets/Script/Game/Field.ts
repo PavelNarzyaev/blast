@@ -58,7 +58,7 @@ export default class Field extends cc.Component {
 	}
 
 	private createBlock(x: number, y: number, column: number, row: number, animationCallerBlock: Block = null): void {
-		let newBlock: Block = new Block();
+		const newBlock: Block = new Block();
 		newBlock.x = x;
 		newBlock.y = y;
 		newBlock.column = column;
@@ -75,9 +75,9 @@ export default class Field extends cc.Component {
 		const group: Block[] = this.calculateBlockGroup(block);
 		if (group.length >= this.minGroupSize) {
 			Model.addPointsForGroup(group.length);
-			let emptyCellsInColumns: object = {};
+			const emptyCellsInColumns: object = {};
 			while (group.length) {
-				let removedBlock: Block = group.pop();
+				const removedBlock: Block = group.pop();
 				this.removeBlock(removedBlock);
 				this.refreshAnimations(block, removedBlock);
 				if (!emptyCellsInColumns[removedBlock.column]) {
@@ -91,21 +91,21 @@ export default class Field extends cc.Component {
 	}
 
 	private calculateBlockGroup(block: Block): Block[] {
-		let group: Block[] = [block];
-		let alreadyCheckedKeys: object = { [this.getGridKey(block.column, block.row)]: true };
+		const group: Block[] = [block];
+		const alreadyCheckedKeys: object = { [this.getGridKey(block.column, block.row)]: true };
 
-		let checkBlockNeighbors = function (checkedBlock: Block) {
+		const checkBlockNeighbors = function (checkedBlock: Block) {
 			checkNeighborBlock.bind(this)(checkedBlock.column - 1, checkedBlock.row);
 			checkNeighborBlock.bind(this)(checkedBlock.column + 1, checkedBlock.row);
 			checkNeighborBlock.bind(this)(checkedBlock.column, checkedBlock.row - 1);
 			checkNeighborBlock.bind(this)(checkedBlock.column, checkedBlock.row + 1);
 		}
 
-		let checkNeighborBlock = function (neighborColumn: number, neighborRow: number) {
-			let gridKey: string = this.getGridKey(neighborColumn, neighborRow);
+		const checkNeighborBlock = function (neighborColumn: number, neighborRow: number) {
+			const gridKey: string = this.getGridKey(neighborColumn, neighborRow);
 			if (!alreadyCheckedKeys[gridKey]) {
 				alreadyCheckedKeys[gridKey] = true;
-				let neighborBlock: Block = this.grid[gridKey];
+				const neighborBlock: Block = this.grid[gridKey];
 				if (
 					neighborBlock &&
 					neighborBlock.prefabIndex == block.prefabIndex &&
@@ -130,7 +130,7 @@ export default class Field extends cc.Component {
 
 	private refreshAnimations(animationCallerBlock: Block, removedBlock: Block): void {
 		for (let row: number = removedBlock.row; row < this.rowsNum; row++) {
-			let animatedBlock: Block = this.getBlockFromGrid(removedBlock.column, row);
+			const animatedBlock: Block = this.getBlockFromGrid(removedBlock.column, row);
 			if (animatedBlock) {
 				this.unregisterBlockFromGrid(animatedBlock);
 				animatedBlock.row--;
@@ -174,9 +174,9 @@ export default class Field extends cc.Component {
 
 	protected update(dt: number): void {
 		for (let id in this.animatedBlocks) {
-			let animatedBlock: Block = this.animatedBlocks[id];
-			let nextY: number = animatedBlock.y - this.blocksMovingSpeed * dt;
-			let maxY: number = animatedBlock.row * this.prefabSize; // TODO: target y does not should to be recalculated so often
+			const animatedBlock: Block = this.animatedBlocks[id];
+			const nextY: number = animatedBlock.y - this.blocksMovingSpeed * dt;
+			const maxY: number = animatedBlock.row * this.prefabSize; // TODO: target y does not should to be recalculated so often
 			if (nextY > maxY) {
 				animatedBlock.y = nextY;
 			} else {
@@ -211,7 +211,7 @@ export default class Field extends cc.Component {
 
 	private removeAllBlocksListeners(): void {
 		for (let key in this.grid) {
-			let block: Block = this.grid[key];
+			const block: Block = this.grid[key];
 			this.removeBlockListeners(block);
 		}
 	}
