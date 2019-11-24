@@ -1,5 +1,6 @@
 import Field from "./Field";
 import Menu from "./Menu";
+import Progress from "./Progress";
 
 const { ccclass, property } = cc._decorator;
 
@@ -23,18 +24,27 @@ export default class MainContainer extends cc.Component {
 	@property
 	gapBetweenFieldAndMenuPercent: number = 0;
 
+	@property(Progress)
+	progress: Progress = null;
+
+	@property
+	progressHeightPercent: number = .2;
+
+	@property
+	progressMaxWidthPercent: number = .8;
+
 	onLoad() {
 		this.node.on(cc.Node.EventType.SIZE_CHANGED, this.alignElements, this);
 	}
 
 	start() {
-		this.menu.node.scale = 1;
 		this.alignElements();
 	}
 
 	alignElements() {
 		this.resizeField();
 		this.resizeMenu();
+		this.resizeProgress();
 
 		const gap: number = this.node.width * this.gapBetweenFieldAndMenuPercent;
 		const totalWidth: number = this.field.node.width + gap + (this.menu.node.width * this.menu.node.scale);
@@ -62,6 +72,11 @@ export default class MainContainer extends cc.Component {
 
 	resizeMenu() {
 		this.menu.node.scale = this.node.width * this.menuWidthPercent / this.menu.node.width;
+	}
+
+	resizeProgress() {
+		const maxScale: number = this.node.width * this.progressMaxWidthPercent / this.progress.node.width;
+		this.progress.node.scale = Math.min(this.node.height * this.progressHeightPercent / this.progress.node.height, maxScale);
 	}
 
 	onDestroy() {

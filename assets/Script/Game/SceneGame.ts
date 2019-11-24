@@ -18,6 +18,7 @@ export default class SceneGame extends cc.Component {
 	start() {
 		Model.launchTimer(this.startGameTime);
 		Model.resetPoints();
+		Model.setTargetPoints(this.targetPoints);
 	}
 
 	onTimeOut() {
@@ -25,7 +26,7 @@ export default class SceneGame extends cc.Component {
 	}
 
 	onPointsChanged() {
-		if (Model.getPoints() >= this.targetPoints) {
+		if (Model.getProgress() == 1) {
 			this.loadSceneFinish(true);
 		}
 	}

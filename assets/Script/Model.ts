@@ -6,6 +6,8 @@ export default class Model {
 	public static gameTimer: number;
 	private static timerId: number;
 	private static points: number = 0;
+	private static targetPoints: number = 0;
+	private static progress: number = 0;
 	public static launchTimer(time: number): void {
 		Model.gameTimer = time;
 		Model.timerId = window.setInterval(function () {
@@ -39,6 +41,17 @@ export default class Model {
 	}
 	private static setPoints(value: number) {
 		Model.points = value;
+		this.recalculateProgress();
 		cc.systemEvent.dispatchEvent(new cc.Event.EventCustom(Model.POINTS_CHANGED_EVENT, false));
+	}
+	public static setTargetPoints(value: number) {
+		Model.targetPoints = value;
+		this.recalculateProgress();
+	}
+	public static recalculateProgress() {
+		Model.progress = Model.targetPoints ? Math.min(Model.points / Model.targetPoints, 1) : 0;
+	}
+	public static getProgress() {
+		return Model.progress;
 	}
 }
