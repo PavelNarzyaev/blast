@@ -11,8 +11,8 @@ export default class SceneGame extends cc.Component {
 	protected targetPoints: number = 5000;
 
 	protected onLoad(): void {
-		cc.systemEvent.on(Model.TIME_OUT_EVENT, this.onTimeOut.bind(this));
-		cc.systemEvent.on(Model.POINTS_CHANGED_EVENT, this.onPointsChanged.bind(this));
+		cc.systemEvent.on(Model.TIME_OUT_EVENT, this.onTimeOut, this);
+		cc.systemEvent.on(Model.POINTS_CHANGED_EVENT, this.onPointsChanged, this);
 	}
 
 	protected start(): void {
@@ -46,7 +46,7 @@ export default class SceneGame extends cc.Component {
 
 	protected onDestroy(): void {
 		Model.stopTimer();
-		cc.systemEvent.off(Model.TIME_OUT_EVENT);
-		cc.systemEvent.off(Model.POINTS_CHANGED_EVENT);
+		cc.systemEvent.off(Model.TIME_OUT_EVENT, this.onTimeOut, this);
+		cc.systemEvent.off(Model.POINTS_CHANGED_EVENT, this.onPointsChanged, this);
 	}
 }

@@ -13,8 +13,8 @@ export default class Menu extends cc.Component {
 	private lastSeconds: boolean = false;
 
 	protected onLoad(): void {
-		cc.systemEvent.on(Model.TIMER_EVENT, this.refreshTimer.bind(this));
-		cc.systemEvent.on(Model.POINTS_CHANGED_EVENT, this.refreshPoints.bind(this));
+		cc.systemEvent.on(Model.TIMER_EVENT, this.refreshTimer, this);
+		cc.systemEvent.on(Model.POINTS_CHANGED_EVENT, this.refreshPoints, this);
 	}
 
 	protected start(): void {
@@ -35,7 +35,7 @@ export default class Menu extends cc.Component {
 	}
 
 	protected onDestroy(): void {
-		cc.systemEvent.off(Model.TIMER_EVENT);
-		cc.systemEvent.off(Model.POINTS_CHANGED_EVENT);
+		cc.systemEvent.off(Model.TIMER_EVENT, this.refreshTimer, this);
+		cc.systemEvent.off(Model.POINTS_CHANGED_EVENT, this.refreshPoints, this);
 	}
 }

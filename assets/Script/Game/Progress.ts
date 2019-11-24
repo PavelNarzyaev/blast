@@ -14,7 +14,7 @@ export default class Progress extends cc.Component {
 	protected maxBarWidth: number = 756;
 
 	protected onLoad(): void {
-		cc.systemEvent.on(Model.POINTS_CHANGED_EVENT, this.refreshBar.bind(this));
+		cc.systemEvent.on(Model.POINTS_CHANGED_EVENT, this.refreshBar, this);
 	}
 
 	protected start(): void {
@@ -26,6 +26,6 @@ export default class Progress extends cc.Component {
 	}
 
 	protected onDestroy(): void {
-		cc.systemEvent.off(Model.POINTS_CHANGED_EVENT);
+		cc.systemEvent.off(Model.POINTS_CHANGED_EVENT, this.refreshBar, this);
 	}
 }
