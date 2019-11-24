@@ -1,4 +1,4 @@
-import Model from "../Model";
+import GameModel from "./GameModel";
 
 const { ccclass, property } = cc._decorator;
 
@@ -14,7 +14,7 @@ export default class Progress extends cc.Component {
 	protected maxBarWidth: number = 756;
 
 	protected onLoad(): void {
-		cc.systemEvent.on(Model.POINTS_CHANGED_EVENT, this.refreshBar, this);
+		cc.systemEvent.on(GameModel.POINTS_CHANGED_EVENT, this.refreshBar, this);
 	}
 
 	protected start(): void {
@@ -22,10 +22,10 @@ export default class Progress extends cc.Component {
 	}
 
 	private refreshBar(): void {
-		this.bar.node.width = this.minBarWidth + (this.maxBarWidth - this.minBarWidth) * Model.getProgress();
+		this.bar.node.width = this.minBarWidth + (this.maxBarWidth - this.minBarWidth) * GameModel.getProgress();
 	}
 
 	protected onDestroy(): void {
-		cc.systemEvent.off(Model.POINTS_CHANGED_EVENT, this.refreshBar, this);
+		cc.systemEvent.off(GameModel.POINTS_CHANGED_EVENT, this.refreshBar, this);
 	}
 }

@@ -1,5 +1,5 @@
-import Model from "../Model";
 import Block from "./Block";
+import GameModel from "./GameModel";
 
 const {ccclass, property} = cc._decorator;
 
@@ -75,7 +75,7 @@ export default class Field extends cc.Component {
 	private onBlockTouch(block: Block): void {
 		const group: Block[] = this.calculateBlockGroup(block);
 		if (group.length >= this.minGroupSize) {
-			Model.addPointsForGroup(group.length);
+			GameModel.addPointsForGroup(group.length);
 			const emptyCellsInColumns: object = {};
 			while (group.length) {
 				const removedBlock: Block = group.pop();

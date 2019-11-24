@@ -1,4 +1,5 @@
 import Model from "../Model";
+import GameModel from "./GameModel";
 
 const { ccclass, property } = cc._decorator;
 
@@ -11,14 +12,14 @@ export default class SceneGame extends cc.Component {
 	protected targetPoints: number = 5000;
 
 	protected onLoad(): void {
-		cc.systemEvent.on(Model.TIME_OUT_EVENT, this.onTimeOut, this);
-		cc.systemEvent.on(Model.POINTS_CHANGED_EVENT, this.onPointsChanged, this);
+		cc.systemEvent.on(GameModel.TIME_OUT_EVENT, this.onTimeOut, this);
+		cc.systemEvent.on(GameModel.POINTS_CHANGED_EVENT, this.onPointsChanged, this);
 	}
 
 	protected start(): void {
-		Model.launchTimer(this.startGameTime);
-		Model.resetPoints();
-		Model.setTargetPoints(this.targetPoints);
+		GameModel.launchTimer(this.startGameTime);
+		GameModel.resetPoints();
+		GameModel.setTargetPoints(this.targetPoints);
 	}
 
 	private onTimeOut(): void {
@@ -26,7 +27,7 @@ export default class SceneGame extends cc.Component {
 	}
 
 	private onPointsChanged(): void {
-		if (Model.getProgress() == 1) {
+		if (GameModel.getProgress() == 1) {
 			this.loadSceneFinish(true);
 		}
 	}
@@ -45,8 +46,8 @@ export default class SceneGame extends cc.Component {
 	}
 
 	protected onDestroy(): void {
-		Model.stopTimer();
-		cc.systemEvent.off(Model.TIME_OUT_EVENT, this.onTimeOut, this);
-		cc.systemEvent.off(Model.POINTS_CHANGED_EVENT, this.onPointsChanged, this);
+		GameModel.stopTimer();
+		cc.systemEvent.off(GameModel.TIME_OUT_EVENT, this.onTimeOut, this);
+		cc.systemEvent.off(GameModel.POINTS_CHANGED_EVENT, this.onPointsChanged, this);
 	}
 }
