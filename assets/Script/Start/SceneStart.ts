@@ -2,7 +2,7 @@ const { ccclass } = cc._decorator;
 
 @ccclass
 export default class SceneStart extends cc.Component {
-	onButtonStartClick(): void {
+	protected onButtonStartClick(): void {
 		cc.director.loadScene('game');
 	}
 }

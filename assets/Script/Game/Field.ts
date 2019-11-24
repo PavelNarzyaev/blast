@@ -5,46 +5,46 @@ const {ccclass, property} = cc._decorator;
 @ccclass
 export default class Field extends cc.Component {
 	@property
-	blocksMovingSpeed: number = 100;
+	protected blocksMovingSpeed: number = 100;
 
 	@property
-	columnsNum: number = 5;
+	protected columnsNum: number = 5;
 
 	@property
-	rowsNum: number = 5;
+	protected rowsNum: number = 5;
 
 	@property
-	minGroupSize: number = 2;
+	protected minGroupSize: number = 2;
 
 	@property
-	prefabSize: number = 171;
+	protected prefabSize: number = 171;
 
 	@property(cc.Node)
-	viewport: cc.Node = null;
+	protected viewport: cc.Node = null;
 
 	@property([cc.Prefab])
-	blocksPrefabs: cc.Prefab[] = [];
+	protected blocksPrefabs: cc.Prefab[] = [];
 
-	grid: object = {}; // key = "{column}x{row}" value = block
-	animatedBlocks: object = {}; // key = "block.id" value = block
+	private grid: object = {}; // key = "{column}x{row}" value = block
+	private animatedBlocks: object = {}; // key = "block.id" value = block
 
-	onLoad() {
+	protected onLoad(): void {
 		this.node.on(cc.Node.EventType.SIZE_CHANGED, this.alignViewport, this);
 	}
 
-	alignViewport() {
+	private alignViewport(): void {
 		const totalBlocksWidth: number = this.prefabSize * this.columnsNum;
 		const totalBlocksHeight: number = this.prefabSize * this.rowsNum;
 		this.viewport.scaleY = (this.node.height - this.calculateViewportVerticalMargins()) / totalBlocksHeight;
 		this.viewport.scaleX = (this.node.width - this.calculateViewportHorizontalMargins()) / totalBlocksWidth;
 	}
 
-	start() {
+	protected start(): void {
 		Block.prefabs = this.blocksPrefabs;
 		this.fillViewport();
 	}
 
-	fillViewport() {
+	private fillViewport(): void {
 		for (let row: number = 0; row < this.rowsNum; row++) {
 			for (let column: number = 0; column < this.columnsNum; column++) {
 				this.createBlock(
@@ -57,7 +57,7 @@ export default class Field extends cc.Component {
 		}
 	}
 
-	createBlock(x: number, y: number, column: number, row: number, animationCallerBlock: Block = null) {
+	private createBlock(x: number, y: number, column: number, row: number, animationCallerBlock: Block = null): void {
 		let newBlock: Block = new Block();
 		newBlock.x = x;
 		newBlock.y = y;
@@ -71,7 +71,7 @@ export default class Field extends cc.Component {
 		newBlock.getNode().on(cc.Node.EventType.TOUCH_START, function () { this.onBlockTouch(newBlock); }, this);
 	}
 
-	onBlockTouch(block: Block) {
+	private onBlockTouch(block: Block): void {
 		const group: Block[] = this.calculateBlockGroup(block);
 		if (group.length >= this.minGroupSize) {
 			Model.addPointsForGroup(group.length);
@@ -90,7 +90,7 @@ export default class Field extends cc.Component {
 		}
 	}
 
-	calculateBlockGroup(block: Block) {
+	private calculateBlockGroup(block: Block): Block[] {
 		let group: Block[] = [block];
 		let alreadyCheckedKeys: object = { [this.getGridKey(block.column, block.row)]: true };
 
@@ -121,14 +121,14 @@ export default class Field extends cc.Component {
 		return group;
 	}
 
-	removeBlock(block: Block) {
+	private removeBlock(block: Block): void {
 		this.stopBlockAnimation(block);
 		block.parent.removeChild(block);
 		this.unregisterBlockFromGrid(block);
 		this.removeBlockListeners(block);
 	}
 
-	refreshAnimations(animationCallerBlock: Block, removedBlock: Block) {
+	private refreshAnimations(animationCallerBlock: Block, removedBlock: Block): void {
 		for (let row: number = removedBlock.row; row < this.rowsNum; row++) {
 			let animatedBlock: Block = this.getBlockFromGrid(removedBlock.column, row);
 			if (animatedBlock) {
@@ -140,19 +140,19 @@ export default class Field extends cc.Component {
 		}
 	}
 
-	startBlockAnimation(animatedBlock: Block, animationCallerBlock: Block) {
+	private startBlockAnimation(animatedBlock: Block, animationCallerBlock: Block): void {
 		if (!this.animatedBlocks[animatedBlock.getId()]) {
 			animatedBlock.startAnimation(animationCallerBlock.getId());
 			this.animatedBlocks[animatedBlock.getId()] = animatedBlock;
 		}
 	}
 
-	stopBlockAnimation(animatedBlock: Block) {
+	private stopBlockAnimation(animatedBlock: Block): void {
 		animatedBlock.stopAnimation();
 		delete this.animatedBlocks[animatedBlock.getId()];
 	}
 
-	createTopBlocks(emptyCellsInColumns: object, animationCallerBlock: Block) {
+	private createTopBlocks(emptyCellsInColumns: object, animationCallerBlock: Block): void {
 		for (let column in emptyCellsInColumns) {
 			let createdBlocksCounter: number = 0;
 			while (createdBlocksCounter < emptyCellsInColumns[column]) {
@@ -172,7 +172,7 @@ export default class Field extends cc.Component {
 		}
 	}
 
-	update(dt: number) {
+	protected update(dt: number): void {
 		for (let id in this.animatedBlocks) {
 			let animatedBlock: Block = this.animatedBlocks[id];
 			let nextY: number = animatedBlock.y - this.blocksMovingSpeed * dt;
@@ -186,48 +186,52 @@ export default class Field extends cc.Component {
 		}
 	}
 
-	registerBlockInGrid(block: Block) {
+	private registerBlockInGrid(block: Block): void {
 		this.grid[this.getGridKey(block.column, block.row)] = block;
 	}
 
-	getBlockFromGrid(column: number, row: number): Block {
+	private getBlockFromGrid(column: number, row: number): Block {
 		return this.grid[this.getGridKey(column, row)];
 	}
 
-	unregisterBlockFromGrid(block: Block) {
+	private unregisterBlockFromGrid(block: Block): void {
 		if (this.grid[this.getGridKey(block.column, block.row)] == block) {
 			delete this.grid[this.getGridKey(block.column, block.row)];
 		}
 	}
 
-	getGridKey(column: number, row: number): string {
+	private getGridKey(column: number, row: number): string {
 		return column + 'x' + row;
 	}
 
-	onDestroy() {
+	protected onDestroy(): void {
 		this.node.off(cc.Node.EventType.SIZE_CHANGED, this.alignViewport, this);
 		this.removeAllBlocksListeners();
 	}
 
-	removeAllBlocksListeners() {
+	private removeAllBlocksListeners(): void {
 		for (let key in this.grid) {
 			let block: Block = this.grid[key];
 			this.removeBlockListeners(block);
 		}
 	}
 
-	removeBlockListeners(block: Block) {
+	private removeBlockListeners(block: Block): void {
 		block.getNode().off(cc.Node.EventType.TOUCH_START);
 	}
 
-	calculateViewportVerticalMargins(): number {
+	public calculateViewportVerticalMargins(): number {
 		const viewportWidget: cc.Widget = this.viewport.getComponent(cc.Widget);
 		return viewportWidget.top + viewportWidget.bottom;
 	}
 
-	calculateViewportHorizontalMargins(): number {
+	public calculateViewportHorizontalMargins(): number {
 		const viewportWidget: cc.Widget = this.viewport.getComponent(cc.Widget);
 		return viewportWidget.left + viewportWidget.bottom;
+	}
+
+	public calculateViewportAspectRatio(): number {
+		return this.columnsNum / this.rowsNum;
 	}
 }
 
@@ -250,23 +254,23 @@ class Block extends cc.Node {
 		this.addChild(this.node);
 	}
 
-	getNode(): cc.Node {
+	public getNode(): cc.Node {
 		return this.node;
 	}
 
-	getId(): number {
+	public getId(): number {
 		return this.id;
 	}
 
-	getAnimationCallerId() {
+	public getAnimationCallerId(): number {
 		return this.animationCallerId;
 	}
 
-	startAnimation(callerId: number) {
+	public startAnimation(callerId: number): void {
 		this.animationCallerId = callerId;
 	}
 
-	stopAnimation() {
+	public stopAnimation(): void {
 		this.animationCallerId = null;
 	}
 }

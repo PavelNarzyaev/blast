@@ -5,27 +5,27 @@ const { ccclass, property } = cc._decorator;
 @ccclass
 export default class Progress extends cc.Component {
 	@property(cc.Sprite)
-	bar: cc.Sprite = null;
+	protected bar: cc.Sprite = null;
 
 	@property
-	minBarWidth: number = 53;
+	protected minBarWidth: number = 53;
 
 	@property
-	maxBarWidth: number = 756;
+	protected maxBarWidth: number = 756;
 
-	onLoad() {
+	protected onLoad(): void {
 		cc.systemEvent.on(Model.POINTS_CHANGED_EVENT, this.refreshBar.bind(this));
 	}
 
-	start() {
+	protected start(): void {
 		this.refreshBar();
 	}
 
-	refreshBar() {
+	private refreshBar(): void {
 		this.bar.node.width = this.minBarWidth + (this.maxBarWidth - this.minBarWidth) * Model.getProgress();
 	}
 
-	onDestroy() {
+	protected onDestroy(): void {
 		cc.systemEvent.off(Model.POINTS_CHANGED_EVENT);
 	}
 }

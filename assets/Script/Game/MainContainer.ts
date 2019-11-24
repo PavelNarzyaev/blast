@@ -7,41 +7,41 @@ const { ccclass, property } = cc._decorator;
 @ccclass
 export default class MainContainer extends cc.Component {
 	@property(Field)
-	field: Field = null;
+	protected field: Field = null;
 
 	@property
-	fieldMaxHeightPercent: number = 1;
+	protected fieldMaxHeightPercent: number = 1;
 
 	@property
-	fieldMaxWidthPercent: number = 1;
+	protected fieldMaxWidthPercent: number = 1;
 
 	@property(Menu)
-	menu: Menu = null;
+	protected menu: Menu = null;
 
 	@property
-	menuWidthPercent: number = 1;
+	protected menuWidthPercent: number = 1;
 
 	@property
-	gapBetweenFieldAndMenuPercent: number = 0;
+	protected gapBetweenFieldAndMenuPercent: number = 0;
 
 	@property(Progress)
-	progress: Progress = null;
+	protected progress: Progress = null;
 
 	@property
-	progressHeightPercent: number = .2;
+	protected progressHeightPercent: number = .2;
 
 	@property
-	progressMaxWidthPercent: number = .8;
+	protected progressMaxWidthPercent: number = .8;
 
-	onLoad() {
+	protected onLoad(): void {
 		this.node.on(cc.Node.EventType.SIZE_CHANGED, this.alignElements, this);
 	}
 
-	start() {
+	protected start(): void {
 		this.alignElements();
 	}
 
-	alignElements() {
+	private alignElements(): void {
 		this.resizeField();
 		this.resizeMenu();
 		this.resizeProgress();
@@ -52,34 +52,34 @@ export default class MainContainer extends cc.Component {
 		this.menu.node.x = this.field.node.x + this.field.node.width + gap;
 	}
 
-	resizeField() {
+	private resizeField(): void {
 		const viewportFrameWidth: number = this.node.width * this.fieldMaxWidthPercent - this.field.calculateViewportHorizontalMargins();
 		const viewportFrameHeight: number = this.node.height * this.fieldMaxHeightPercent - this.field.calculateViewportVerticalMargins();
 		const viewportFrameAspectRatio: number = viewportFrameWidth / viewportFrameHeight;
-		const gridAspectRatio: number = this.field.columnsNum / this.field.rowsNum;
+		const viewportAspectRatio: number = this.field.calculateViewportAspectRatio();
 
-		if (gridAspectRatio > viewportFrameAspectRatio) {
+		if (viewportAspectRatio > viewportFrameAspectRatio) {
 			this.field.node.width = viewportFrameWidth + this.field.calculateViewportHorizontalMargins();
-			this.field.node.height = viewportFrameWidth / gridAspectRatio + this.field.calculateViewportVerticalMargins();
-		} else if (gridAspectRatio < viewportFrameAspectRatio) {
+			this.field.node.height = viewportFrameWidth / viewportAspectRatio + this.field.calculateViewportVerticalMargins();
+		} else if (viewportAspectRatio < viewportFrameAspectRatio) {
 			this.field.node.height = viewportFrameHeight + this.field.calculateViewportVerticalMargins();
-			this.field.node.width = viewportFrameHeight * gridAspectRatio + this.field.calculateViewportHorizontalMargins();
+			this.field.node.width = viewportFrameHeight * viewportAspectRatio + this.field.calculateViewportHorizontalMargins();
 		} else {
 			this.field.node.width = viewportFrameWidth + this.field.calculateViewportHorizontalMargins();
 			this.field.node.height = viewportFrameHeight + this.field.calculateViewportVerticalMargins();
 		}
 	}
 
-	resizeMenu() {
+	private resizeMenu(): void {
 		this.menu.node.scale = this.node.width * this.menuWidthPercent / this.menu.node.width;
 	}
 
-	resizeProgress() {
+	private resizeProgress(): void {
 		const maxScale: number = this.node.width * this.progressMaxWidthPercent / this.progress.node.width;
 		this.progress.node.scale = Math.min(this.node.height * this.progressHeightPercent / this.progress.node.height, maxScale);
 	}
 
-	onDestroy() {
+	protected onDestroy(): void {
 		this.node.off(cc.Node.EventType.SIZE_CHANGED, this.alignElements, this);
 	}
 }

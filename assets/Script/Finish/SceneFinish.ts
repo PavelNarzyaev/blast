@@ -5,9 +5,9 @@ const { ccclass, property } = cc._decorator;
 @ccclass
 export default class SceneFinish extends cc.Component {
 	@property(cc.Label)
-	label: cc.Label = null;
+	protected label: cc.Label = null;
 
-	start() {
+	protected start(): void {
 		if (Model.win) {
 			this.label.string = 'You win!';
 		} else {
@@ -15,7 +15,7 @@ export default class SceneFinish extends cc.Component {
 		}
 	}
 
-	onButtonAgainClick() {
+	protected onButtonAgainClick(): void {
 		cc.director.loadScene('game');
 	}
 }
