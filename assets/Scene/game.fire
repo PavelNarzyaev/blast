@@ -171,7 +171,7 @@
       "array": [
         0,
         0,
-        342.2961730957031,
+        350.19903564453125,
         0,
         0,
         0,
@@ -1481,7 +1481,7 @@
       "__id__": 27
     },
     "_enabled": true,
-    "blocksMovingSpeed": 600,
+    "blocksMovingSpeed": 1000,
     "columnsNum": 7,
     "rowsNum": 8,
     "minGroupSize": 2,

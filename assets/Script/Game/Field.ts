@@ -61,39 +61,41 @@ export default class Field extends cc.Component {
 		}
 	}
 
-	private createBlock(x: number, y: number, column: number, row: number, animationCallerBlock: Block = null): void {
+	private createBlock(x: number, y: number, column: number, row: number, animated: boolean = false): void {
 		const newBlock: Block = new Block();
 		newBlock.x = x;
 		newBlock.y = y;
 		newBlock.column = column;
 		newBlock.row = row;
 		this.registerBlockInGrid(newBlock);
-		if (animationCallerBlock) {
-			this.startBlockAnimation(newBlock, animationCallerBlock);
+		if (animated) {
+			this.startBlockAnimation(newBlock);
 		}
 		this.viewport.addChild(newBlock);
 		newBlock.getNode().on(cc.Node.EventType.TOUCH_START, function () { this.onBlockTouch(newBlock); }, this);
 	}
 
 	private onBlockTouch(block: Block): void {
-		const group: Block[] = this.calculateBlockGroup(block);
-		if (group.length >= this.minGroupSize) {
-			GameModel.addPointsForGroup(group.length);
-			const emptyCellsInColumns: object = {};
-			let removedBlocksCounter: number = 0;
-			while (removedBlocksCounter < group.length) {
-				const removedBlock: Block = group[removedBlocksCounter];
-				this.removeBlock(removedBlock);
-				this.refreshAnimations(block, removedBlock);
-				if (!emptyCellsInColumns[removedBlock.column]) {
-					emptyCellsInColumns[removedBlock.column] = 1;
-				} else {
-					emptyCellsInColumns[removedBlock.column]++;
+		if (!this.animatedBlocks[block.getId()]) {
+			const group: Block[] = this.calculateBlockGroup(block);
+			if (group.length >= this.minGroupSize) {
+				GameModel.addPointsForGroup(group.length);
+				const emptyCellsInColumns: object = {};
+				let removedBlocksCounter: number = 0;
+				while (removedBlocksCounter < group.length) {
+					const removedBlock: Block = group[removedBlocksCounter];
+					this.removeBlock(removedBlock);
+					this.refreshAnimations(removedBlock);
+					if (!emptyCellsInColumns[removedBlock.column]) {
+						emptyCellsInColumns[removedBlock.column] = 1;
+					} else {
+						emptyCellsInColumns[removedBlock.column]++;
+					}
+					removedBlocksCounter++;
 				}
-				removedBlocksCounter++;
+				this.createTopBlocks(emptyCellsInColumns);
+				this.showGroupRemovingAnimation(group);
 			}
-			this.createTopBlocks(emptyCellsInColumns, block);
-			this.showGroupRemovingAnimation(group);
 		}
 	}
 
@@ -116,7 +118,7 @@ export default class Field extends cc.Component {
 				if (
 					neighborBlock &&
 					neighborBlock.prefabIndex == block.prefabIndex &&
-					neighborBlock.getAnimationCallerId() == block.getAnimationCallerId() // not animated blocks or animated in one time
+					!this.animatedBlocks[neighborBlock.getId()]
 				) {
 					group.push(neighborBlock);
 					checkBlockNeighbors.bind(this)(neighborBlock);
@@ -163,31 +165,29 @@ export default class Field extends cc.Component {
 		particles.gravity = new cc.Vec2(0, -500);
 	}
 
-	private refreshAnimations(animationCallerBlock: Block, removedBlock: Block): void {
+	private refreshAnimations(removedBlock: Block): void {
 		for (let row: number = removedBlock.row; row < this.rowsNum; row++) {
 			const animatedBlock: Block = this.getBlockFromGrid(removedBlock.column, row);
 			if (animatedBlock) {
 				this.unregisterBlockFromGrid(animatedBlock);
 				animatedBlock.row--;
 				this.registerBlockInGrid(animatedBlock);
-				this.startBlockAnimation(animatedBlock, animationCallerBlock);
+				this.startBlockAnimation(animatedBlock);
 			}
 		}
 	}
 
-	private startBlockAnimation(animatedBlock: Block, animationCallerBlock: Block): void {
+	private startBlockAnimation(animatedBlock: Block): void {
 		if (!this.animatedBlocks[animatedBlock.getId()]) {
-			animatedBlock.startAnimation(animationCallerBlock.getId());
 			this.animatedBlocks[animatedBlock.getId()] = animatedBlock;
 		}
 	}
 
 	private stopBlockAnimation(animatedBlock: Block): void {
-		animatedBlock.stopAnimation();
 		delete this.animatedBlocks[animatedBlock.getId()];
 	}
 
-	private createTopBlocks(emptyCellsInColumns: object, animationCallerBlock: Block): void {
+	private createTopBlocks(emptyCellsInColumns: object): void {
 		for (let column in emptyCellsInColumns) {
 			let createdBlocksCounter: number = 0;
 			while (createdBlocksCounter < emptyCellsInColumns[column]) {
@@ -200,7 +200,7 @@ export default class Field extends cc.Component {
 					newBlockY,
 					Number(column),
 					newBlockRow,
-					animationCallerBlock
+					true
 				);
 				createdBlocksCounter++;
 			}

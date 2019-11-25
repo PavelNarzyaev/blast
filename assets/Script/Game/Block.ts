@@ -6,7 +6,6 @@ export default class Block extends cc.Node {
 	public prefabIndex: number;
 	private node: cc.Node;
 	private id: number;
-	private animationCallerId: number = null;
 
 	constructor() {
 		super();
@@ -23,17 +22,5 @@ export default class Block extends cc.Node {
 
 	public getId(): number {
 		return this.id;
-	}
-
-	public getAnimationCallerId(): number {
-		return this.animationCallerId;
-	}
-
-	public startAnimation(callerId: number): void {
-		this.animationCallerId = callerId;
-	}
-
-	public stopAnimation(): void {
-		this.animationCallerId = null;
 	}
 }
