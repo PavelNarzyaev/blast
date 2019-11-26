@@ -27,14 +27,6 @@ export default class SceneGame extends cc.Component {
 		}
 	}
 
-	protected onButtonWinClick(): void {
-		this.loadSceneFinish(true);
-	}
-
-	protected onButtonLoseClick(): void {
-		this.loadSceneFinish(false);
-	}
-
 	private loadSceneFinish(win: boolean): void {
 		Model.win = win;
 		cc.director.loadScene('finish');
