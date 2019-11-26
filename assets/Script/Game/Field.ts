@@ -1,5 +1,6 @@
 import Block from "./Block";
 import GameModel from "./GameModel";
+import BlocksManager from "./BlocksManager";
 
 const {ccclass, property} = cc._decorator;
 
@@ -29,8 +30,7 @@ export default class Field extends cc.Component {
 	@property(cc.Prefab)
 	protected particlePrefab: cc.Prefab = null;
 
-	private grid: object = {}; // key = "{column}x{row}" value = block
-	private animatedBlocks: object = {}; // key = "block.id" value = block
+	private blocksManager: BlocksManager;
 
 	protected onLoad(): void {
 		this.node.on(cc.Node.EventType.SIZE_CHANGED, this.alignViewport, this);
@@ -45,6 +45,7 @@ export default class Field extends cc.Component {
 
 	protected start(): void {
 		Block.prefabs = this.blocksPrefabs;
+		this.blocksManager = new BlocksManager();
 		this.fillViewport();
 	}
 
@@ -67,17 +68,17 @@ export default class Field extends cc.Component {
 		newBlock.y = y;
 		newBlock.column = column;
 		newBlock.row = row;
-		this.registerBlockInGrid(newBlock);
+		this.blocksManager.registerBlockInGrid(newBlock);
 		if (animated) {
-			this.startBlockAnimation(newBlock);
+			this.blocksManager.registerAnimatedBlock(newBlock);
 		}
 		this.viewport.addChild(newBlock);
 		newBlock.getNode().on(cc.Node.EventType.TOUCH_START, function () { this.onBlockTouch(newBlock); }, this);
 	}
 
 	private onBlockTouch(block: Block): void {
-		if (!this.animatedBlocks[block.getId()]) {
-			const group: Block[] = this.calculateBlockGroup(block);
+		if (!this.blocksManager.blockIsAnimated(block)) {
+			const group: Block[] = this.blocksManager.calculateGroupByBlock(block);
 			if (group.length >= this.minGroupSize) {
 				GameModel.addPointsForGroup(group.length);
 				const emptyCellsInColumns: object = {};
@@ -99,41 +100,10 @@ export default class Field extends cc.Component {
 		}
 	}
 
-	private calculateBlockGroup(block: Block): Block[] {
-		const group: Block[] = [block];
-		const alreadyCheckedKeys: object = { [this.getGridKey(block.column, block.row)]: true };
-
-		const checkBlockNeighbors = function (checkedBlock: Block) {
-			checkNeighborBlock.bind(this)(checkedBlock.column - 1, checkedBlock.row);
-			checkNeighborBlock.bind(this)(checkedBlock.column + 1, checkedBlock.row);
-			checkNeighborBlock.bind(this)(checkedBlock.column, checkedBlock.row - 1);
-			checkNeighborBlock.bind(this)(checkedBlock.column, checkedBlock.row + 1);
-		}
-
-		const checkNeighborBlock = function (neighborColumn: number, neighborRow: number) {
-			const gridKey: string = this.getGridKey(neighborColumn, neighborRow);
-			if (!alreadyCheckedKeys[gridKey]) {
-				alreadyCheckedKeys[gridKey] = true;
-				const neighborBlock: Block = this.grid[gridKey];
-				if (
-					neighborBlock &&
-					neighborBlock.prefabIndex == block.prefabIndex &&
-					!this.animatedBlocks[neighborBlock.getId()]
-				) {
-					group.push(neighborBlock);
-					checkBlockNeighbors.bind(this)(neighborBlock);
-				}
-			}
-		}
-
-		checkBlockNeighbors.bind(this)(block);
-		return group;
-	}
-
 	private removeBlock(block: Block): void {
-		this.stopBlockAnimation(block);
+		this.blocksManager.unregisterAnimatedBlock(block);
+		this.blocksManager.unregisterBlockFromGrid(block);
 		block.parent.removeChild(block);
-		this.unregisterBlockFromGrid(block);
 		this.removeBlockListeners(block);
 	}
 
@@ -167,24 +137,14 @@ export default class Field extends cc.Component {
 
 	private refreshAnimations(removedBlock: Block): void {
 		for (let row: number = removedBlock.row; row < this.rowsNum; row++) {
-			const animatedBlock: Block = this.getBlockFromGrid(removedBlock.column, row);
+			const animatedBlock: Block = this.blocksManager.getBlockFromGrid(removedBlock.column, row);
 			if (animatedBlock) {
-				this.unregisterBlockFromGrid(animatedBlock);
+				this.blocksManager.unregisterBlockFromGrid(animatedBlock);
 				animatedBlock.row--;
-				this.registerBlockInGrid(animatedBlock);
-				this.startBlockAnimation(animatedBlock);
+				this.blocksManager.registerBlockInGrid(animatedBlock);
+				this.blocksManager.registerAnimatedBlock(animatedBlock);
 			}
 		}
-	}
-
-	private startBlockAnimation(animatedBlock: Block): void {
-		if (!this.animatedBlocks[animatedBlock.getId()]) {
-			this.animatedBlocks[animatedBlock.getId()] = animatedBlock;
-		}
-	}
-
-	private stopBlockAnimation(animatedBlock: Block): void {
-		delete this.animatedBlocks[animatedBlock.getId()];
 	}
 
 	private createTopBlocks(emptyCellsInColumns: object): void {
@@ -192,7 +152,7 @@ export default class Field extends cc.Component {
 			let createdBlocksCounter: number = 0;
 			while (createdBlocksCounter < emptyCellsInColumns[column]) {
 				const newBlockRow: number = this.rowsNum - emptyCellsInColumns[column] + createdBlocksCounter;
-				const bottomBlock: Block = this.getBlockFromGrid(Number(column), newBlockRow - 1);
+				const bottomBlock: Block = this.blocksManager.getBlockFromGrid(Number(column), newBlockRow - 1);
 				const newBlockMinY: number = this.rowsNum * this.prefabSize;
 				const newBlockY: number = bottomBlock ? Math.max(bottomBlock.y + this.prefabSize, newBlockMinY) : newBlockMinY;
 				this.createBlock(
@@ -208,35 +168,19 @@ export default class Field extends cc.Component {
 	}
 
 	protected update(dt: number): void {
-		for (let id in this.animatedBlocks) {
-			const animatedBlock: Block = this.animatedBlocks[id];
-			const nextY: number = animatedBlock.y - this.blocksMovingSpeed * dt;
-			const maxY: number = animatedBlock.row * this.prefabSize; // TODO: target y does not should to be recalculated so often
-			if (nextY > maxY) {
-				animatedBlock.y = nextY;
-			} else {
-				animatedBlock.y = maxY;
-				this.stopBlockAnimation(animatedBlock);
-			}
-		}
-	}
-
-	private registerBlockInGrid(block: Block): void {
-		this.grid[this.getGridKey(block.column, block.row)] = block;
-	}
-
-	private getBlockFromGrid(column: number, row: number): Block {
-		return this.grid[this.getGridKey(column, row)];
-	}
-
-	private unregisterBlockFromGrid(block: Block): void {
-		if (this.grid[this.getGridKey(block.column, block.row)] == block) {
-			delete this.grid[this.getGridKey(block.column, block.row)];
-		}
-	}
-
-	private getGridKey(column: number, row: number): string {
-		return column + 'x' + row;
+		this.blocksManager.iterateAnimatedBlocks(
+			function (animatedBlock: Block) {
+				const nextY: number = animatedBlock.y - this.blocksMovingSpeed * dt;
+				const maxY: number = animatedBlock.row * this.prefabSize; // TODO: target y does not should to be recalculated so often
+				if (nextY > maxY) {
+					animatedBlock.y = nextY;
+				} else {
+					animatedBlock.y = maxY;
+					this.blocksManager.unregisterAnimatedBlock(animatedBlock);
+				}
+			},
+			this
+		);
 	}
 
 	protected onDestroy(): void {
@@ -245,10 +189,7 @@ export default class Field extends cc.Component {
 	}
 
 	private removeAllBlocksListeners(): void {
-		for (let key in this.grid) {
-			const block: Block = this.grid[key];
-			this.removeBlockListeners(block);
-		}
+		this.blocksManager.iterateGridBlocks(this.removeBlockListeners, this);
 	}
 
 	private removeBlockListeners(block: Block): void {
