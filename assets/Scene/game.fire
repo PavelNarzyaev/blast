@@ -171,7 +171,7 @@
       "array": [
         0,
         0,
-        350.8342590332031,
+        342.18829345703125,
         0,
         0,
         0,
@@ -1644,7 +1644,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 295.84,
+      "width": 301.6,
       "height": 40
     },
     "_anchorPoint": {
@@ -1695,8 +1695,8 @@
       }
     ],
     "_useOriginalSize": false,
-    "_string": "время:",
-    "_N$string": "время:",
+    "_string": "ходы:",
+    "_N$string": "ходы:",
     "_fontSize": 80,
     "_lineHeight": 40,
     "_enableWrapText": true,
@@ -1713,7 +1713,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "timeLabel",
+    "_name": "movesLabel",
     "_objFlags": 0,
     "_parent": {
       "__id__": 34
@@ -2054,7 +2054,7 @@
       "__id__": 34
     },
     "_enabled": true,
-    "timeLabel": {
+    "movesLabel": {
       "__id__": 38
     },
     "scoresLabel": {
@@ -2475,8 +2475,8 @@
       "__id__": 2
     },
     "_enabled": true,
-    "startGameTime": 30,
-    "targetPoints": 2500,
+    "movesLimit": 10,
+    "targetPoints": 1200,
     "_id": "36je8aQ9NE/6k0zbj2PB6A"
   }
 ]

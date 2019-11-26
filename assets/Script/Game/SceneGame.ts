@@ -6,29 +6,24 @@ const { ccclass, property } = cc._decorator;
 @ccclass
 export default class SceneGame extends cc.Component {
 	@property
-	protected startGameTime: number = 99;
+	protected movesLimit: number = 10;
 
 	@property
-	protected targetPoints: number = 5000;
+	protected targetPoints: number = 2500;
 
 	protected onLoad(): void {
-		cc.systemEvent.on(GameModel.TIME_OUT_EVENT, this.onTimeOut, this);
-		cc.systemEvent.on(GameModel.POINTS_CHANGED_EVENT, this.onPointsChanged, this);
+		cc.systemEvent.on(GameModel.MOVE_EVENT, this.onMove, this);
 	}
 
 	protected start(): void {
-		GameModel.launchTimer(this.startGameTime);
-		GameModel.resetPoints();
-		GameModel.setTargetPoints(this.targetPoints);
+		GameModel.init(this.movesLimit, this.targetPoints);
 	}
 
-	private onTimeOut(): void {
-		this.loadSceneFinish(false);
-	}
-
-	private onPointsChanged(): void {
+	private onMove(): void {
 		if (GameModel.getProgress() == 1) {
 			this.loadSceneFinish(true);
+		} else if (GameModel.getRemainingMoves() <= 0) {
+			this.loadSceneFinish(false);
 		}
 	}
 
@@ -46,8 +41,6 @@ export default class SceneGame extends cc.Component {
 	}
 
 	protected onDestroy(): void {
-		GameModel.stopTimer();
-		cc.systemEvent.off(GameModel.TIME_OUT_EVENT, this.onTimeOut, this);
-		cc.systemEvent.off(GameModel.POINTS_CHANGED_EVENT, this.onPointsChanged, this);
+		cc.systemEvent.off(GameModel.MOVE_EVENT, this.onMove, this);
 	}
 }

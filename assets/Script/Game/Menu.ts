@@ -5,37 +5,25 @@ const {ccclass, property} = cc._decorator;
 @ccclass
 export default class Menu extends cc.Component {
 	@property(cc.Label)
-	protected timeLabel: cc.Label = null;
+	protected movesLabel: cc.Label = null;
 
 	@property(cc.Label)
 	protected scoresLabel: cc.Label = null;
 
-	private lastSeconds: boolean = false;
-
 	protected onLoad(): void {
-		cc.systemEvent.on(GameModel.TIMER_EVENT, this.refreshTimer, this);
-		cc.systemEvent.on(GameModel.POINTS_CHANGED_EVENT, this.refreshPoints, this);
+		cc.systemEvent.on(GameModel.MOVE_EVENT, this.refresh, this);
 	}
 
 	protected start(): void {
-		this.refreshTimer();
-		this.refreshPoints();
+		this.refresh();
 	}
 
-	private refreshTimer(): void {
-		if (GameModel.getTimer() <= 5 && !this.lastSeconds) {
-			this.lastSeconds = true;
-			this.timeLabel.node.color = new cc.Color(255, 0, 0);
-		}
-		this.timeLabel.string = GameModel.getTimer().toString();
-	}
-
-	private refreshPoints(): void {
+	private refresh(): void {
+		this.movesLabel.string = GameModel.getRemainingMoves().toString();
 		this.scoresLabel.string = GameModel.getPoints().toString();
 	}
 
 	protected onDestroy(): void {
-		cc.systemEvent.off(GameModel.TIMER_EVENT, this.refreshTimer, this);
-		cc.systemEvent.off(GameModel.POINTS_CHANGED_EVENT, this.refreshPoints, this);
+		cc.systemEvent.off(GameModel.MOVE_EVENT, this.refresh, this);
 	}
 }

@@ -14,18 +14,18 @@ export default class Progress extends cc.Component {
 	protected maxBarWidth: number = 756;
 
 	protected onLoad(): void {
-		cc.systemEvent.on(GameModel.POINTS_CHANGED_EVENT, this.refreshBar, this);
+		cc.systemEvent.on(GameModel.MOVE_EVENT, this.refresh, this);
 	}
 
 	protected start(): void {
-		this.refreshBar();
+		this.refresh();
 	}
 
-	private refreshBar(): void {
+	private refresh(): void {
 		this.bar.node.width = this.minBarWidth + (this.maxBarWidth - this.minBarWidth) * GameModel.getProgress();
 	}
 
 	protected onDestroy(): void {
-		cc.systemEvent.off(GameModel.POINTS_CHANGED_EVENT, this.refreshBar, this);
+		cc.systemEvent.off(GameModel.MOVE_EVENT, this.refresh, this);
 	}
 }

@@ -80,7 +80,7 @@ export default class Field extends cc.Component {
 		if (!this.blocksManager.blockIsAnimated(block)) {
 			const group: Block[] = this.blocksManager.calculateGroupByBlock(block);
 			if (group.length >= this.minGroupSize) {
-				GameModel.addPointsForGroup(group.length);
+				GameModel.move(group.length);
 				const emptyCellsInColumns: object = {};
 				let removedBlocksCounter: number = 0;
 				while (removedBlocksCounter < group.length) {
