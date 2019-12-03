@@ -32,15 +32,11 @@ export default class Field extends cc.Component {
 
 	private blocksManager: BlocksManager;
 
-	protected onLoad(): void {
-		this.node.on(cc.Node.EventType.SIZE_CHANGED, this.alignViewport, this);
-	}
-
-	private alignViewport(): void {
-		const totalBlocksWidth: number = this.prefabSize * this.columnsNum;
-		const totalBlocksHeight: number = this.prefabSize * this.rowsNum;
-		this.viewport.scaleY = (this.node.height - this.calculateViewportVerticalMargins()) / totalBlocksHeight;
-		this.viewport.scaleX = (this.node.width - this.calculateViewportHorizontalMargins()) / totalBlocksWidth;
+	public alignNode(): void {
+		const totalBlocksWidth = this.prefabSize * this.columnsNum;
+		const totalBlocksHeight = this.prefabSize * this.rowsNum;
+		this.node.width = totalBlocksWidth + this.calculateViewportHorizontalMargins();
+		this.node.height = totalBlocksHeight + this.calculateViewportVerticalMargins();
 	}
 
 	protected start(): void {
@@ -118,8 +114,8 @@ export default class Field extends cc.Component {
 
 	private showBlockRemovingAnimation(removedBlock: Block): void {
 		const particlesNode: cc.Node = cc.instantiate(this.particlePrefab);
-		particlesNode.x = this.viewport.x + (removedBlock.x + this.prefabSize / 2) * this.viewport.scale;
-		particlesNode.y = this.viewport.y + (removedBlock.y + this.prefabSize / 2) * this.viewport.scale;
+		particlesNode.x = this.viewport.x + (removedBlock.x + this.prefabSize / 2);
+		particlesNode.y = this.viewport.y + (removedBlock.y + this.prefabSize / 2);
 		this.node.addChild(particlesNode);
 
 		const particles: cc.ParticleSystem = particlesNode.getComponent(cc.ParticleSystem);
@@ -131,7 +127,7 @@ export default class Field extends cc.Component {
 		particles.emissionRate = 300;
 		particles.speed = 20;
 		particles.angleVar = 180;
-		particles.posVar = new cc.Vec2(this.prefabSize * this.viewport.scale / 2, this.prefabSize * this.viewport.scale / 2);
+		particles.posVar = new cc.Vec2(this.prefabSize * this.node.scale / 2, this.prefabSize * this.node.scale / 2);
 		particles.gravity = new cc.Vec2(0, -500);
 	}
 
@@ -153,7 +149,7 @@ export default class Field extends cc.Component {
 			while (createdBlocksCounter < emptyCellsInColumns[column]) {
 				const newBlockRow: number = this.rowsNum - emptyCellsInColumns[column] + createdBlocksCounter;
 				const bottomBlock: Block = this.blocksManager.getBlockFromGrid(Number(column), newBlockRow - 1);
-				const newBlockMinY: number = this.rowsNum * this.prefabSize;
+				const newBlockMinY: number = this.viewport.height;
 				const newBlockY: number = bottomBlock ? Math.max(bottomBlock.y + this.prefabSize, newBlockMinY) : newBlockMinY;
 				this.createBlock(
 					Number(column) * this.prefabSize,
@@ -184,7 +180,6 @@ export default class Field extends cc.Component {
 	}
 
 	protected onDestroy(): void {
-		this.node.off(cc.Node.EventType.SIZE_CHANGED, this.alignViewport, this);
 		this.removeAllBlocksListeners();
 	}
 
@@ -203,10 +198,6 @@ export default class Field extends cc.Component {
 
 	public calculateViewportHorizontalMargins(): number {
 		const viewportWidget: cc.Widget = this.viewport.getComponent(cc.Widget);
-		return viewportWidget.left + viewportWidget.bottom;
-	}
-
-	public calculateViewportAspectRatio(): number {
-		return this.columnsNum / this.rowsNum;
+		return viewportWidget.left + viewportWidget.right;
 	}
 }
